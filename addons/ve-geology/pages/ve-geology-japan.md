@@ -1,0 +1,31 @@
+---
+title: Japan Volcanoes
+uuid: a1b2c3d4-0004-4000-8000-ve0geology004
+slug: japan-volcanoes
+author: system
+user-keywords:
+  - Japan
+  - volcanoes
+  - Pacific Ring of Fire
+lastModified: '2026-03-29T00:00:00.000Z'
+editor: system
+---
+# Japan Volcanoes
+
+Japan sits on the Pacific Ring of Fire and hosts some of the world's most active volcanoes.
+
+## Map
+
+[{VolcanoMap country='Japan' lat='36' lon='138' zoom='5' height='450'}]
+
+## Volcano List
+
+[{VolcanoList country='Japan' epoch='Holocene' limit='50'}]
+
+## Recent Earthquakes Near Japanese Volcanoes
+
+[{EarthquakeList minLatitude='30' maxLatitude='46' minLongitude='129' maxLongitude='146' nearVolcano='true' limit='20'}]
+
+----
+
+__See also:__ [Volcanoes] | [Earthquakes] | [Geology Demo]
