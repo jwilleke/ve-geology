@@ -96,8 +96,9 @@ module.exports = {
         document.getElementById('vs-status').textContent =
           'Showing ' + data.volcanoes.length + ' of ' + data.total + ' volcanoes';
         var rows = data.volcanoes.map(function (v) {
+          var gvpUrl = 'https://volcano.si.edu/volcano.cfm?vn=' + v.volcanoNumber;
           return '<tr>'
-            + '<td>' + escHtml(v.volcanoNumber) + '</td>'
+            + '<td><a href="' + gvpUrl + '" target="_blank" rel="noopener">' + escHtml(v.volcanoNumber) + '</a></td>'
             + '<td>' + escHtml(v.volcanoName)   + '</td>'
             + '<td>' + escHtml(v.country)        + '</td>'
             + '<td>' + escHtml(v.volcanicRegion) + '</td>'

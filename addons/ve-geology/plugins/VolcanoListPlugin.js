@@ -44,9 +44,11 @@ module.exports = {
       return '<p class="vl-empty">No volcanoes match the specified criteria.</p>';
     }
 
-    const rows = volcanoes.map(v => `
+    const rows = volcanoes.map(v => {
+      const gvpUrl = `https://volcano.si.edu/volcano.cfm?vn=${v.volcanoNumber}`;
+      return `
   <tr>
-    <td>${esc(String(v.volcanoNumber))}</td>
+    <td><a href="${gvpUrl}" target="_blank" rel="noopener">${esc(String(v.volcanoNumber))}</a></td>
     <td>${esc(v.volcanoName)}</td>
     <td>${esc(v.country)}</td>
     <td>${esc(v.volcanicRegion)}</td>
@@ -54,7 +56,8 @@ module.exports = {
     <td>${esc(v.epoch)}</td>
     <td>${v.elevation != null ? esc(String(v.elevation)) : ''}</td>
     <td>${esc(v.lastKnownEruption)}</td>
-  </tr>`).join('');
+  </tr>`;
+    }).join('');
 
     const showing = filters.offset + volcanoes.length;
     const caption = total > volcanoes.length

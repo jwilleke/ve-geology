@@ -48,8 +48,9 @@ function renderFull(v) {
     ? `<div class="vib-photo"><img src="${esc(v.primaryPhotoLink)}" alt="${esc(v.volcanoName)}"${v.primaryPhotoCaption ? ` title="${esc(v.primaryPhotoCaption)}"` : ''}></div>`
     : '';
 
+  const gvpUrl = `https://volcano.si.edu/volcano.cfm?vn=${v.volcanoNumber}`;
   const rows = [
-    ['GVP Number',     v.volcanoNumber],
+    ['GVP Number', `<a href="${gvpUrl}" target="_blank" rel="noopener">${esc(String(v.volcanoNumber))}</a>`],
     ['Country',        v.country],
     ['Region',         v.volcanicRegion],
     ['Region Group',   v.volcanicRegionGroup],
@@ -62,9 +63,11 @@ function renderFull(v) {
     ['Tectonic',       v.tectonicSetting],
     ['Activity',       v.activityEvidence],
     ['Last Eruption',  v.lastKnownEruption],
-  ].filter(([, val]) => val).map(([label, val]) =>
-    `<tr><th>${esc(String(label))}</th><td>${esc(String(val))}</td></tr>`
-  ).join('\n');
+  ].filter(([, val]) => val).map(([label, val]) => {
+    // GVP Number row contains a pre-built anchor — render it raw
+    const tdContent = label === 'GVP Number' ? String(val) : esc(String(val));
+    return `<tr><th>${esc(String(label))}</th><td>${tdContent}</td></tr>`;
+  }).join('\n');
 
   const summary = v.geologicalSummary
     ? `<div class="vib-summary"><p>${esc(v.geologicalSummary)}</p></div>`
