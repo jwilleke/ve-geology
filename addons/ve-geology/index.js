@@ -23,14 +23,19 @@
 const path = require('path');
 const express = require('express');
 
-const VolcanoDataManager = require('./managers/VolcanoDataManager');
-const VolcanoInfoboxPlugin = require('./plugins/VolcanoInfoboxPlugin');
-const VolcanoListPlugin = require('./plugins/VolcanoListPlugin');
-const VolcanoSearchPlugin = require('./plugins/VolcanoSearchPlugin');
-const VolcanoMapPlugin = require('./plugins/VolcanoMapPlugin');
+const VolcanoDataManager    = require('./managers/VolcanoDataManager');
+const EarthquakeDataManager = require('./managers/EarthquakeDataManager');
+const VolcanoInfoboxPlugin   = require('./plugins/VolcanoInfoboxPlugin');
+const VolcanoListPlugin      = require('./plugins/VolcanoListPlugin');
+const VolcanoSearchPlugin    = require('./plugins/VolcanoSearchPlugin');
+const VolcanoMapPlugin       = require('./plugins/VolcanoMapPlugin');
+const EarthquakeListPlugin   = require('./plugins/EarthquakeListPlugin');
+const EarthquakeMapPlugin    = require('./plugins/EarthquakeMapPlugin');
 
 /** @type {VolcanoDataManager | null} */
 let dataManager = null;
+/** @type {EarthquakeDataManager | null} */
+let earthquakeManager = null;
 
 module.exports = {
   name: 've-geology',
@@ -50,13 +55,20 @@ module.exports = {
     await dataManager.load();
     engine.registerManager('VolcanoDataManager', dataManager);
 
+    // ── 1b. Initialize earthquake manager ───────────────────────────────────
+    earthquakeManager = new EarthquakeDataManager(dataPath);
+    await earthquakeManager.load();
+    engine.registerManager('EarthquakeDataManager', earthquakeManager);
+
     // ── 2. Register markup plugins ───────────────────────────────────────────
     const pluginManager = engine.getManager('PluginManager');
     if (pluginManager) {
-      await pluginManager.registerPlugin('VolcanoInfobox', VolcanoInfoboxPlugin);
-      await pluginManager.registerPlugin('VolcanoList', VolcanoListPlugin);
-      await pluginManager.registerPlugin('VolcanoSearch', VolcanoSearchPlugin);
-      await pluginManager.registerPlugin('VolcanoMap', VolcanoMapPlugin);
+      await pluginManager.registerPlugin('VolcanoInfobox',   VolcanoInfoboxPlugin);
+      await pluginManager.registerPlugin('VolcanoList',      VolcanoListPlugin);
+      await pluginManager.registerPlugin('VolcanoSearch',    VolcanoSearchPlugin);
+      await pluginManager.registerPlugin('VolcanoMap',       VolcanoMapPlugin);
+      await pluginManager.registerPlugin('EarthquakeList',   EarthquakeListPlugin);
+      await pluginManager.registerPlugin('EarthquakeMap',    EarthquakeMapPlugin);
     }
 
     // ── 3. Serve static assets ───────────────────────────────────────────────
@@ -83,16 +95,19 @@ module.exports = {
   },
 
   async status() {
-    const volcanoCount = dataManager ? dataManager.volcanoCount() : 0;
-    const eruptionCount = dataManager ? dataManager.eruptionCount() : 0;
+    const volcanoCount   = dataManager       ? dataManager.volcanoCount()        : 0;
+    const eruptionCount  = dataManager       ? dataManager.eruptionCount()       : 0;
+    const earthquakeCount = earthquakeManager ? earthquakeManager.count()         : 0;
+    const nearVolcano    = earthquakeManager ? earthquakeManager.nearVolcanoCount() : 0;
     return {
       healthy: true,
       records: volcanoCount,
-      message: `${volcanoCount} volcanoes, ${eruptionCount} eruptions loaded`
+      message: `${volcanoCount} volcanoes, ${eruptionCount} eruptions, ${earthquakeCount} earthquakes (${nearVolcano} near volcanoes)`
     };
   },
 
   async shutdown() {
-    dataManager = null;
+    dataManager       = null;
+    earthquakeManager = null;
   }
 };

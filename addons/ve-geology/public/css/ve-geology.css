@@ -170,6 +170,74 @@
   overflow: hidden;
 }
 
+/* ── Earthquake list ──────────────────────────────────────────────────────── */
+
+.earthquake-list {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.eq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875em;
+}
+
+.eq-table th,
+.eq-table td {
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+  text-align: left;
+}
+
+.eq-table th {
+  background: var(--bs-secondary-bg, #f8f9fa);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.eq-table tr:hover td {
+  background: var(--bs-tertiary-bg, #f1f3f5);
+}
+
+.eq-caption {
+  margin-top: 0.25rem;
+  font-size: 0.8em;
+  color: var(--bs-secondary-color, #6c757d);
+  text-align: right;
+}
+
+.eq-empty {
+  color: var(--bs-secondary-color, #6c757d);
+  font-style: italic;
+}
+
+.eq-alert {
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  border-radius: 0.2rem;
+  font-size: 0.75em;
+  font-weight: 700;
+  color: #fff;
+  margin-right: 0.25rem;
+}
+
+.eq-alert-green  { background: #2dc653; color: #000; }
+.eq-alert-yellow { background: #f6c90e; color: #000; }
+.eq-alert-orange { background: #f4811f; }
+.eq-alert-red    { background: #e63946; }
+
+.eq-tsunami { font-size: 1em; }
+
+/* ── Earthquake map ───────────────────────────────────────────────────────── */
+
+.earthquake-map {
+  margin: 1rem 0;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
 /* ── Shared ───────────────────────────────────────────────────────────────── */
 
 .plugin-error {

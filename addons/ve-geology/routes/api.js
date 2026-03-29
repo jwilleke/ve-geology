@@ -7,10 +7,12 @@ const express = require('express');
  * Mounted at /api/ve-geology in register().
  *
  * Endpoints:
- *   GET /api/ve-geology/search          Search/filter volcanoes
- *   GET /api/ve-geology/distinct/:field  Distinct values for a field
- *   GET /api/ve-geology/volcano/:number  Single volcano by GVP number
- *   GET /api/ve-geology/eruptions/:number  Eruptions for a volcano
+ *   GET /api/ve-geology/search                  Search/filter volcanoes
+ *   GET /api/ve-geology/distinct/:field          Distinct values for a field
+ *   GET /api/ve-geology/volcano/:number          Single volcano by GVP number
+ *   GET /api/ve-geology/eruptions/:number        Eruptions for a volcano
+ *   GET /api/ve-geology/earthquakes/search       Search/filter earthquakes
+ *   GET /api/ve-geology/earthquakes/near/:number Earthquakes near a volcano
  *
  * @param {import('../../../src/types/WikiEngine').WikiEngine} engine
  * @param {Record<string, unknown>} _config
@@ -68,8 +70,62 @@ module.exports = function apiRoutes(engine, _config) {
     res.json({ volcanoNumber: Number(req.params.number), eruptions });
   });
 
+  // GET /api/ve-geology/earthquakes/search?minMagnitude=&maxMagnitude=
+  //   &minDepth=&maxDepth=&nearVolcano=true&tsunamiOnly=true
+  //   &alert=&volcanoNumber=&limit=100&offset=0
+  router.get('/earthquakes/search', (req, res) => {
+    try {
+      const mgr = engine.getManager('EarthquakeDataManager');
+      if (!mgr) return res.status(503).json({ error: 'EarthquakeDataManager not available' });
+
+      const filters = parseEqFilters(req.query);
+      const result  = mgr.search(filters);
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+    }
+  });
+
+  // GET /api/ve-geology/earthquakes/near/:number
+  router.get('/earthquakes/near/:number', (req, res) => {
+    const mgr = engine.getManager('EarthquakeDataManager');
+    if (!mgr) return res.status(503).json({ error: 'EarthquakeDataManager not available' });
+
+    const earthquakes = mgr.nearVolcano(Number(req.params.number));
+    res.json({ volcanoNumber: Number(req.params.number), earthquakes });
+  });
+
+  // GET /api/ve-geology/earthquakes/status
+  router.get('/earthquakes/status', (req, res) => {
+    const mgr = engine.getManager('EarthquakeDataManager');
+    if (!mgr) return res.status(503).json({ error: 'EarthquakeDataManager not available' });
+
+    res.json({
+      fetchedUtc:      mgr.fetchedUtc,
+      feed:            mgr.feed,
+      totalCount:      mgr.count(),
+      nearVolcanoCount: mgr.nearVolcanoCount(),
+    });
+  });
+
   return router;
 };
+
+/** @param {Record<string, unknown>} q */
+function parseEqFilters(q) {
+  const f = {};
+  if (q.minMagnitude)  f.minMagnitude  = Number(q.minMagnitude);
+  if (q.maxMagnitude)  f.maxMagnitude  = Number(q.maxMagnitude);
+  if (q.minDepth)      f.minDepth      = Number(q.minDepth);
+  if (q.maxDepth)      f.maxDepth      = Number(q.maxDepth);
+  if (q.nearVolcano === 'true')  f.nearVolcano  = true;
+  if (q.tsunamiOnly === 'true')  f.tsunamiOnly  = true;
+  if (q.alert)         f.alert         = String(q.alert);
+  if (q.volcanoNumber) f.volcanoNumber = Number(q.volcanoNumber);
+  if (q.limit)         f.limit         = Number(q.limit);
+  if (q.offset)        f.offset        = Number(q.offset);
+  return f;
+}
 
 /** @param {Record<string, unknown>} q */
 function parseFilters(q) {

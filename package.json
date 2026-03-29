@@ -7,7 +7,9 @@
     "import": "node addons/ve-geology/import/import-volcanoes.js",
     "import:eruptions": "node addons/ve-geology/import/import-volcanoes.js --eruptions",
     "import:activity": "node addons/ve-geology/import/import-volcanoes.js --activity",
-    "import:all": "node addons/ve-geology/import/import-volcanoes.js --eruptions --activity"
+    "import:all": "node addons/ve-geology/import/import-volcanoes.js --eruptions --activity",
+    "import:earthquakes": "node addons/ve-geology/import/import-earthquakes.js",
+    "import:earthquakes:month": "node addons/ve-geology/import/import-earthquakes.js --feed=4.5-month"
   },
   "dependencies": {
     "express": "^4.18.0"
