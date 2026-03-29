@@ -1,0 +1,20 @@
+{
+  "name": "ve-geology",
+  "version": "1.0.0",
+  "description": "Volcano & geology add-on for ngdpbase",
+  "private": true,
+  "scripts": {
+    "import": "node addons/ve-geology/import/import-volcanoes.js",
+    "import:eruptions": "node addons/ve-geology/import/import-volcanoes.js --eruptions",
+    "import:activity": "node addons/ve-geology/import/import-volcanoes.js --activity",
+    "import:all": "node addons/ve-geology/import/import-volcanoes.js --eruptions --activity"
+  },
+  "dependencies": {
+    "express": "^4.18.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "jwilleke",
+  "license": "MIT"
+}
