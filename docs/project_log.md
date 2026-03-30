@@ -2,12 +2,28 @@
 
 This document tracks ongoing work and session history for the ve-geology project.
 
+## Format
+
+```
+### yyyy-MM-dd-##
+
+- **Agent:** [Claude/Gemini/Other]
+- **Subject:** [Brief description]
+- **Work Done:**
+  - [task 1]
+  - [task 2]
+- **Commits:** [hash list]
+- **Files Modified:**
+  - [file1.js]
+  - [file2.md]
+```
+
 ## Current Status
 
 - **Phase:** Active development — core addon complete, data sources expanding
 - **Build Status:** No build step (CommonJS JS). Lint passing (`npm run lint`)
 - **Last Updated:** 2026-03-30
-- **Overall Health:** Stable. ngdpbase running on port 3333. 4 data sources integrated.
+- **Overall Health:** Stable. ngdpbase running on port 3333. 4 data sources integrated. Domain home page live at `/`.
 
 ## Next Steps
 
@@ -21,6 +37,20 @@ This document tracks ongoing work and session history for the ve-geology project
 ---
 
 ## Session Logs
+
+### 2026-03-30-03
+
+- **Agent:** Claude Sonnet 4.6
+- **Subject:** Fix domain home page not visible at root URL
+- **Work Done:**
+  - Diagnosed root cause: `WikiRoutes.homePage()` hardcoded `res.redirect('/view/Welcome')` — never read `ngdpbase.front-page` config
+  - Fixed `homePage()` to read `ngdpbase.front-page` config, defaulting to `Welcome`
+  - Filed and fixed ngdpbase#416
+  - Rebuilt ngdpbase and restarted — `/` now redirects to `/view/volcanoes-and-earthquakes`
+  - Verified home page renders with VolcanoMap, EarthquakeList, and HansAlerts plugins
+- **Commits:** `f1915e2e` (ngdpbase)
+- **Files Modified:**
+  - `ngdpbase/src/routes/WikiRoutes.ts`
 
 ### 2026-03-30-02
 
@@ -129,19 +159,3 @@ This document tracks ongoing work and session history for the ve-geology project
   - `ngdpbase/views/header.ejs`
   - `ngdpbase/themes/volcano/assets/favicon.svg`
   - `ngdpbase/data/config/app-custom-config.json`
-
-## Format
-
-```
-### yyyy-MM-dd-##
-
-- **Agent:** [Claude/Gemini/Other]
-- **Subject:** [Brief description]
-- **Work Done:**
-  - [task 1]
-  - [task 2]
-- **Commits:** [hash list]
-- **Files Modified:**
-  - [file1.js]
-  - [file2.md]
-```
