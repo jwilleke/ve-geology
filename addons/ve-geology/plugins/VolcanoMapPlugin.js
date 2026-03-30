@@ -42,8 +42,8 @@ module.exports = {
 <div class="volcano-map">
   <div id="${mapId}" style="height:${height}px; width:100%;"></div>
 </div>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPBk=" crossorigin=""></script>
+<link rel="stylesheet" href="/addons/ve-geology/vendor/leaflet/leaflet.css">
+<script src="/addons/ve-geology/vendor/leaflet/leaflet.js"></script>
 <script>
 (function () {
   function initMap() {
