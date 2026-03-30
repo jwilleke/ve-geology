@@ -27,6 +27,7 @@ This document tracks ongoing work and session history for the ve-geology project
 
 ## Next Steps
 
+- ~~Add pagination to VolcanoList and EarthquakeList (ve-geology#1)~~ ✓ done
 - Implement periodic data refresh via BackgroundJobManager (ve-geology#8)
 - Add end-user plugin documentation wiki pages (ve-geology#9)
 - Add pagination to VolcanoList and EarthquakeList (ve-geology#1)
@@ -37,6 +38,23 @@ This document tracks ongoing work and session history for the ve-geology project
 ---
 
 ## Session Logs
+
+### 2026-03-30-05
+
+- **Agent:** Claude Sonnet 4.6
+- **Subject:** Pagination for VolcanoList and EarthquakeList (ve-geology#1)
+- **Work Done:**
+  - Added prev/next pagination controls to `VolcanoListPlugin.js` and `EarthquakeListPlugin.js`
+  - Each plugin instance gets a unique widget ID; multiple instances on one page work independently
+  - Filters embedded as JSON in the script closure at render time; client-side `goTo(offset)` fetches the API and swaps tbody rows in-place
+  - Disabled prev/next buttons reflect boundary conditions (first/last page)
+  - Added shared `.vl-pagination` / `.vl-page-btn` CSS to `ve-geology.css`
+  - Verified on `/wiki/geology-demo`: "Showing 1–10 of 114" with working Prev/Next
+- **Commits:** `abd6030`
+- **Files Modified:**
+  - `addons/ve-geology/plugins/VolcanoListPlugin.js`
+  - `addons/ve-geology/plugins/EarthquakeListPlugin.js`
+  - `addons/ve-geology/public/css/ve-geology.css`
 
 ### 2026-03-30-04
 
