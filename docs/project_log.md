@@ -38,6 +38,23 @@ This document tracks ongoing work and session history for the ve-geology project
 
 ## Session Logs
 
+### 2026-03-30-04
+
+- **Agent:** Claude Sonnet 4.6
+- **Subject:** Fix Leaflet maps not rendering — bundle Leaflet locally
+- **Work Done:**
+  - Diagnosed root cause: machine has no external network access; `unpkg.com` unreachable from browser, so Leaflet.js never loaded
+  - Installed `leaflet@1.9.4` as npm dependency
+  - Copied Leaflet JS, CSS, and all image assets to `addons/ve-geology/public/vendor/leaflet/`
+  - Updated `VolcanoMapPlugin.js` and `EarthquakeMapPlugin.js` to load from `/addons/ve-geology/vendor/leaflet/` instead of unpkg CDN
+  - Verified `http://localhost:3333/addons/ve-geology/vendor/leaflet/leaflet.js` returns 200
+- **Commits:** `8c97605`
+- **Files Modified:**
+  - `addons/ve-geology/plugins/VolcanoMapPlugin.js`
+  - `addons/ve-geology/plugins/EarthquakeMapPlugin.js`
+  - `addons/ve-geology/public/vendor/leaflet/` (new — leaflet.js, leaflet.css, images/)
+  - `package.json`
+
 ### 2026-03-30-03
 
 - **Agent:** Claude Sonnet 4.6
