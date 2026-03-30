@@ -13,6 +13,9 @@ const express = require('express');
  *   GET /api/ve-geology/eruptions/:number        Eruptions for a volcano
  *   GET /api/ve-geology/earthquakes/search       Search/filter earthquakes
  *   GET /api/ve-geology/earthquakes/near/:number Earthquakes near a volcano
+ *   GET /api/ve-geology/hans/elevated            Currently elevated US volcanoes
+ *   GET /api/ve-geology/hans/volcano/:number     HANS alert for a single volcano
+ *   GET /api/ve-geology/hans/status              HANS snapshot metadata
  *
  * @param {import('../../../src/types/WikiEngine').WikiEngine} engine
  * @param {Record<string, unknown>} _config
@@ -106,6 +109,40 @@ module.exports = function apiRoutes(engine, _config) {
       totalCount:      mgr.count(),
       nearVolcanoCount: mgr.nearVolcanoCount(),
     });
+  });
+
+  // ── HANS alert routes ──────────────────────────────────────────────────────
+
+  // GET /api/ve-geology/hans/elevated?alertLevel=&colorCode=&observatory=
+  router.get('/hans/elevated', (req, res) => {
+    const mgr = engine.getManager('HansDataManager');
+    if (!mgr) return res.status(503).json({ error: 'HansDataManager not available — run npm run import:hans' });
+
+    const filters = {};
+    if (req.query.alertLevel)  filters.alertLevel  = String(req.query.alertLevel);
+    if (req.query.colorCode)   filters.colorCode   = String(req.query.colorCode);
+    if (req.query.observatory) filters.observatory = String(req.query.observatory);
+
+    const alerts = mgr.getElevated(filters);
+    res.json({ elevated: alerts, total: alerts.length });
+  });
+
+  // GET /api/ve-geology/hans/volcano/:number
+  router.get('/hans/volcano/:number', (req, res) => {
+    const mgr = engine.getManager('HansDataManager');
+    if (!mgr) return res.status(503).json({ error: 'HansDataManager not available' });
+
+    const alert = mgr.getAlert(req.params.number);
+    if (!alert) return res.json({ volcanoNumber: req.params.number, alert: null, elevated: false });
+    res.json({ volcanoNumber: req.params.number, alert, elevated: true });
+  });
+
+  // GET /api/ve-geology/hans/status
+  router.get('/hans/status', (req, res) => {
+    const mgr = engine.getManager('HansDataManager');
+    if (!mgr) return res.status(503).json({ error: 'HansDataManager not available' });
+
+    res.json(mgr.status());
   });
 
   return router;

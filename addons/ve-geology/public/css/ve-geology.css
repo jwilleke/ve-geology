@@ -238,6 +238,85 @@
   overflow: hidden;
 }
 
+/* ── HANS alerts ──────────────────────────────────────────────────────────── */
+
+.hans-alerts {
+  margin: 1rem 0;
+}
+
+.hans-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.hans-table th,
+.hans-table td {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  vertical-align: top;
+}
+
+.hans-table thead th {
+  background: var(--bs-secondary-bg, #f8f9fa);
+  font-weight: 600;
+}
+
+/* Row background tint by color code */
+.hans-row--red    { background: #fff0f0; }
+.hans-row--orange { background: #fff7f0; }
+.hans-row--yellow { background: #fffdf0; }
+.hans-row--green  { background: #f0fff4; }
+
+/* Aviation color code badge */
+.hans-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+.hans-badge--red    { background: #c0392b; }
+.hans-badge--orange { background: #e67e22; }
+.hans-badge--yellow { background: #f39c12; color: #333; }
+.hans-badge--green  { background: #27ae60; }
+
+/* Alert level text */
+.hans-level--warning  { color: #c0392b; font-weight: 700; }
+.hans-level--watch    { color: #e67e22; font-weight: 700; }
+.hans-level--advisory { color: #f39c12; font-weight: 600; }
+.hans-level--normal   { color: #27ae60; }
+
+.hans-prev {
+  font-size: 0.8em;
+  color: var(--bs-secondary, #6c757d);
+}
+
+.hans-synopsis-row td {
+  padding: 0.25rem 0.6rem 0.5rem;
+  background: var(--bs-body-bg, #fff);
+  border-top: none;
+}
+
+.hans-synopsis {
+  font-size: 0.85em;
+  color: var(--bs-secondary, #6c757d);
+  font-style: italic;
+}
+
+.hans-all-normal {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.hans-meta {
+  font-size: 0.8em;
+  color: var(--bs-secondary, #6c757d);
+  margin-top: 0.5rem;
+}
+
 /* ── Shared ───────────────────────────────────────────────────────────────── */
 
 .plugin-error {

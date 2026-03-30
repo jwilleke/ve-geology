@@ -25,17 +25,21 @@ const express = require('express');
 
 const VolcanoDataManager    = require('./managers/VolcanoDataManager');
 const EarthquakeDataManager = require('./managers/EarthquakeDataManager');
+const HansDataManager       = require('./managers/HansDataManager');
 const VolcanoInfoboxPlugin   = require('./plugins/VolcanoInfoboxPlugin');
 const VolcanoListPlugin      = require('./plugins/VolcanoListPlugin');
 const VolcanoSearchPlugin    = require('./plugins/VolcanoSearchPlugin');
 const VolcanoMapPlugin       = require('./plugins/VolcanoMapPlugin');
 const EarthquakeListPlugin   = require('./plugins/EarthquakeListPlugin');
 const EarthquakeMapPlugin    = require('./plugins/EarthquakeMapPlugin');
+const HansAlertPlugin        = require('./plugins/HansAlertPlugin');
 
 /** @type {VolcanoDataManager | null} */
 let dataManager = null;
 /** @type {EarthquakeDataManager | null} */
 let earthquakeManager = null;
+/** @type {HansDataManager | null} */
+let hansManager = null;
 
 module.exports = {
   name: 've-geology',
@@ -60,6 +64,11 @@ module.exports = {
     await earthquakeManager.load();
     engine.registerManager('EarthquakeDataManager', earthquakeManager);
 
+    // ── 1c. Initialize HANS manager (optional — loads if activity.json exists)
+    hansManager = new HansDataManager(dataPath);
+    await hansManager.load();
+    engine.registerManager('HansDataManager', hansManager);
+
     // ── 2. Register markup plugins ───────────────────────────────────────────
     const pluginManager = engine.getManager('PluginManager');
     if (pluginManager) {
@@ -69,6 +78,7 @@ module.exports = {
       await pluginManager.registerPlugin('VolcanoMap',       VolcanoMapPlugin);
       await pluginManager.registerPlugin('EarthquakeList',   EarthquakeListPlugin);
       await pluginManager.registerPlugin('EarthquakeMap',    EarthquakeMapPlugin);
+      await pluginManager.registerPlugin('HansAlerts',       HansAlertPlugin);
     }
 
     // ── 3. Serve static assets ───────────────────────────────────────────────
@@ -95,19 +105,21 @@ module.exports = {
   },
 
   async status() {
-    const volcanoCount   = dataManager       ? dataManager.volcanoCount()        : 0;
-    const eruptionCount  = dataManager       ? dataManager.eruptionCount()       : 0;
-    const earthquakeCount = earthquakeManager ? earthquakeManager.count()         : 0;
-    const nearVolcano    = earthquakeManager ? earthquakeManager.nearVolcanoCount() : 0;
+    const volcanoCount    = dataManager       ? dataManager.volcanoCount()          : 0;
+    const eruptionCount   = dataManager       ? dataManager.eruptionCount()         : 0;
+    const earthquakeCount = earthquakeManager ? earthquakeManager.count()           : 0;
+    const nearVolcano     = earthquakeManager ? earthquakeManager.nearVolcanoCount() : 0;
+    const hansElevated    = hansManager       ? hansManager.count()                 : 0;
     return {
       healthy: true,
       records: volcanoCount,
-      message: `${volcanoCount} volcanoes, ${eruptionCount} eruptions, ${earthquakeCount} earthquakes (${nearVolcano} near volcanoes)`
+      message: `${volcanoCount} volcanoes, ${eruptionCount} eruptions, ${earthquakeCount} earthquakes (${nearVolcano} near volcanoes), ${hansElevated} HANS elevated`
     };
   },
 
   async shutdown() {
     dataManager       = null;
     earthquakeManager = null;
+    hansManager       = null;
   }
 };
