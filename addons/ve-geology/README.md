@@ -258,7 +258,7 @@ addons/ve-geology/
 
 | Source | URL |
 |--------|-----|
-| GVP Holocene volcanoes | https://volcano.si.edu/ |
-| GVP WFS API | https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows |
-| USGS Earthquake feeds | https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary |
+| GVP Holocene volcanoes | <https://volcano.si.edu/> |
+| GVP WFS API | <https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows> |
+| USGS Earthquake feeds | <https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary> |
 | Volcano detail page | `https://volcano.si.edu/volcano.cfm?vn={number}` |

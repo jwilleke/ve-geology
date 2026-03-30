@@ -10,13 +10,31 @@
     "import:all": "node addons/ve-geology/import/import-volcanoes.js --eruptions --activity",
     "import:earthquakes": "node addons/ve-geology/import/import-earthquakes.js",
     "import:earthquakes:month": "node addons/ve-geology/import/import-earthquakes.js --feed=4.5-month",
-    "import:hans": "node addons/ve-geology/import/import-hans.js"
+    "import:hans": "node addons/ve-geology/import/import-hans.js",
+    "lint": "npm run lint:code && npm run lint:md",
+    "lint:code": "eslint addons/**/*.js",
+    "lint:code:fix": "eslint addons/**/*.js --fix",
+    "lint:md": "npx markdownlint \"**/*.md\" --ignore node_modules",
+    "lint:md:fix": "npx markdownlint \"**/*.md\" --ignore node_modules --fix",
+    "lint:fix": "npm run lint:code:fix && npm run lint:md:fix",
+    "format": "prettier --write \"addons/**/*.js\"",
+    "format:check": "prettier --check \"addons/**/*.js\"",
+    "prepare": "husky install"
   },
   "dependencies": {
     "express": "^4.18.0"
   },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.57.2",
+    "@typescript-eslint/parser": "^8.57.2",
+    "eslint": "^8.0.0",
+    "husky": "^8.0.0",
+    "markdownlint-cli": "^0.48.0",
+    "prettier": "^3.0.0"
+  },
   "engines": {
-    "node": ">=18"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "author": "jwilleke",
   "license": "MIT"

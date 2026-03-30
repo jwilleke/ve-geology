@@ -5,7 +5,7 @@ description: Real-time US volcano alert levels from the USGS Hazard Alert Notifi
 tags: [geology, volcanoes, alerts, usgs]
 ---
 
-# US Volcano Alerts
+## US Volcano Alerts
 
 Real-time alert levels for monitored US volcanoes, sourced from the
 [USGS Hazard Alert Notification System (HANS)](https://volcanoes.usgs.gov/hans-public/api/).
@@ -25,15 +25,15 @@ Real-time alert levels for monitored US volcanoes, sourced from the
 
 ## By Observatory
 
-**Alaska Volcano Observatory (AVO)**
+### Alaska Volcano Observatory (AVO)
 
 [{HansAlerts observatory='avo'}]
 
-**Hawaiian Volcano Observatory (HVO)**
+### Hawaiian Volcano Observatory (HVO)
 
 [{HansAlerts observatory='hvo'}]
 
-**Cascades Volcano Observatory (CVO)**
+### Cascades Volcano Observatory (CVO)
 
 [{HansAlerts observatory='cvo'}]
 

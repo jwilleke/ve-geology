@@ -69,8 +69,8 @@ cd /path/to/ngdpbase
 
 On startup the add-on seeds four demo wiki pages into your instance (only if they don't already exist):
 
-| URL | Content |
-|-----|---------|
+| URL                       | Content                      |
+| ------------------------- | ---------------------------- |
 | `/wiki/volcanoes` | VolcanoSearch + VolcanoMap |
 | `/wiki/earthquakes` | EarthquakeList + EarthquakeMap |
 | `/wiki/geology-demo` | All six plugins |
@@ -107,11 +107,11 @@ ve-geology/
 
 ## Data sources
 
-| Source | URL |
-|--------|-----|
-| GVP Volcanoes (WFS) | https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows |
-| USGS Earthquake feeds | https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary |
-| Volcano detail pages | https://volcano.si.edu/volcano.cfm?vn={number} |
+| Source               | URL                                                                    |
+| -------------------- | ---------------------------------------------------------------------- |
+| GVP Volcanoes (WFS) | <https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows> |
+| USGS Earthquake feeds | <https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary> |
+| Volcano detail pages | <https://volcano.si.edu/volcano.cfm?vn={number}> |
 
 ## Related
 

@@ -10,7 +10,7 @@ user-keywords:
 lastModified: '2026-03-29T00:00:00.000Z'
 editor: system
 ---
-# ve-geology Plugin Demo
+## ve-geology Plugin Demo
 
 This page demonstrates all plugins provided by the __ve-geology__ addon.
 

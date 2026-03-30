@@ -10,7 +10,7 @@ user-keywords:
 lastModified: '2026-03-29T00:00:00.000Z'
 editor: system
 ---
-# Japan Volcanoes
+## Japan Volcanoes
 
 Japan sits on the Pacific Ring of Fire and hosts some of the world's most active volcanoes.
 

@@ -10,7 +10,7 @@ user-keywords:
 lastModified: '2026-03-29T00:00:00.000Z'
 editor: system
 ---
-# Volcanoes
+## Volcanoes
 
 Global volcano data from the [Smithsonian Global Volcanism Program (GVP)|https://volcano.si.edu/].
 Records cover __2,661__ Holocene and Pleistocene volcanoes worldwide.
