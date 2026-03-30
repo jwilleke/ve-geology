@@ -1,150 +1,91 @@
 # Setup Guide
 
-Step-by-step instructions to set up the project locally for development.
+Step-by-step instructions to set up ve-geology locally for development.
 
-**First:** Read [GLOBAL-CODE-PREFERENCES.md](GLOBAL-CODE-PREFERENCES.md) for project principles before starting.
+**First:** Read [GLOBAL-CODE-PREFERENCES.md](GLOBAL-CODE-PREFERENCES.md) and [AGENTS.md](AGENTS.md).
 
-## System Requirements
+## Prerequisites
 
-### Required for Node Projects
+- **Node.js** v18+ (`node --version`)
+- **npm** v9+ (`npm --version`)
+- A running [ngdpbase](https://github.com/jwilleke/ngdpbase) instance (see ngdpbase README)
+- Internet access for initial data import
 
-- **Node.js**: v18 or higher
-  - Check: `node --version`
-  - Download: <https://nodejs.org/>
-- **npm**: v9 or higher
-  - Check: `npm --version`
-- **Git**: Latest version
-  - Check: `git --version`
-
-### Recommended for Node Projects
-
-- VS Code with TypeScript support
-- 4GB+ RAM
-- 500MB+ disk space
-
-## Step 1: Clone Repository
+## Step 1 — Clone and install
 
 ```bash
-git clone <repository-url>
-cd <project-directory>
-```
-
-### Step 2: Install Dependencies
-
-```bash
+git clone https://github.com/jwilleke/ve-geology.git
+cd ve-geology
 npm install
 ```
 
-Or with other package managers:
+## Step 2 — Import data
+
+Volcano data must be imported before starting ngdpbase:
 
 ```bash
-yarn install
-pnpm install
+npm run import:all          # Volcanoes + eruptions + global activity
+npm run import:earthquakes  # USGS M4.5+ earthquakes (past 7 days)
+npm run import:hans         # USGS HANS US volcano alert levels
 ```
 
-### Step 3: Environment Setup
+Data is written to `addons/ve-geology/data/` (gitignored). Re-run any time to refresh.
+
+## Step 3 — Wire to ngdpbase
+
+Add to `$FAST_STORAGE/config/app-custom-config.json` on your ngdpbase instance:
+
+```json
+{
+  "ngdpbase.managers.addons-manager.addons-path": "/absolute/path/to/ve-geology/addons",
+  "ngdpbase.addons.ve-geology.enabled": true,
+  "ngdpbase.addons.ve-geology.dataPath": "./data/ve-geology"
+}
+```
+
+## Step 4 — Restart ngdpbase
 
 ```bash
-# Create .env from template
-cp .env.example .env
-
-# Edit with your configuration
-code .env
+cd /path/to/ngdpbase
+npm run build        # Required if any ngdpbase .ts files were changed
+./server.sh restart
 ```
 
-## Verification
+On startup the addon seeds four demo pages into the ngdpbase instance
+(`/wiki/volcanoes`, `/wiki/earthquakes`, `/wiki/geology-demo`, `/wiki/volcano-alerts`).
 
-Run these commands to verify setup:
+## Step 5 — Verify
 
 ```bash
-# Check Node version
-node --version      # Should be v18+
+curl http://localhost:3333/api/ve-geology/search?limit=1
+# Should return { volcanoes: [...], total: 1400+ }
 
-# Check dependencies installed
-npm list --depth=0
-
-# Check TypeScript
-npx tsc --version
-
-# Run linting
-npm run lint
-
-# Run type checking
-npx tsc --noEmit
-
-# Run tests
-npm run test
+curl http://localhost:3333/api/ve-geology/hans/status
+# Should return { elevatedCount, monitoredCount, fetchedUtc }
 ```
 
-All commands should complete without critical errors.
+Check `pm2 logs ngdpbase-ngdpbase` for addon load confirmation.
 
-## Development Commands
+## Development workflow
 
 ```bash
-npm run dev              # Start development server
-npm run build            # Build project
-npm run lint             # Check code quality
-npm run lint:fix         # Auto-fix issues
-npm run format           # Format code
-npm run test             # Run tests
-npm run test:watch       # Watch mode tests
-npm run test:coverage    # Check coverage
+npm run lint        # Check code and markdown before committing
+npm run lint:fix    # Auto-fix lint issues
 ```
+
+The Husky pre-commit hook runs `npm run lint` automatically.
+Commits are rejected if lint fails.
 
 ## Troubleshooting
 
-### npm install fails
+**Addon not loading:** Check `pm2 logs` — common causes are missing `node_modules`
+in the ve-geology directory or incorrect `addons-path` config.
 
-```bash
-# Clear cache and reinstall
-npm cache clean --force
-rm -rf node_modules package-lock.json
-npm install
-```
+**Empty API responses `{ volcanoes: [], total: 0 }`:** Data files are missing —
+run `npm run import:all`.
 
-### Node version issues
+**HANS data not showing:** `activity.json` is absent — run `npm run import:hans`.
+The addon starts cleanly without it; HANS is optional.
 
-```bash
-# Install nvm (Node Version Manager)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-
-# Install and use Node 18
-nvm install 18
-nvm use 18
-```
-
-### TypeScript errors
-
-```bash
-# Reinstall and check
-npm install
-npx tsc --version
-```
-
-### Port already in use
-
-```bash
-# Use different port
-PORT=3001 npm run dev
-```
-
-## Project Context
-
-After setup, read these files to understand the project:
-
-- **AGENTS.md** - Project goals, status, and priorities
-- **CODE_STANDARDS.md** - Coding guidelines and standards
-- **CONTRIBUTING.md** - How to contribute
-- **README.md** - Project overview
-
-## Next Steps
-
-For current project-specific next steps, see [docs/project_log.md](docs/project_log.md).
-
-**After initial setup:**
-
-1. Read `AGENTS.md` for project context
-2. Read `CODE_STANDARDS.md` for coding guidelines
-3. Check `CONTRIBUTING.md` for workflow
-
-Welcome! 🚀
+**Earthquake proximity not working:** `volcanoes.json` must exist before running
+`import:earthquakes` — the proximity match requires volcano coordinates.

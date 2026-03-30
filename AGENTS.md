@@ -1,6 +1,6 @@
 ---
-project_state: "template"
-last_updated: "2025-12-21"
+project_state: "active"
+last_updated: "2026-03-30"
 agent_priority_level: "medium"
 blockers: []
 requires_human_review: ["major architectural changes", "security policy modifications", "deployment to production"]
@@ -9,134 +9,178 @@ agent_autonomy_level: "high"
 
 # Project Context for AI Agents
 
-This file serves as the single source of truth for project context and state. All Experts should read this and update file when working on this project.
-
-## Agent Context Protocol
-
-### Machine-Readable Metadata
-
-See YAML frontmatter above for current project state.
-
-### Update Requirements
-
-- Update `last_updated` field whenever making significant changes to this file
-- Update `project_state` to reflect current status: "template", "active", "maintenance", "archived"
-- Update `blockers` array with any current blockers preventing progress
-- Update `agent_priority_level` based on urgency: "low", "medium", "high", "critical"
+This file is the single source of truth for project context and agent guidance.
+Read this before starting any work. Update `last_updated` and relevant sections after significant changes.
 
 ## CRITICAL
 
-- Read [GLOBAL-CODE-PREFERENCES.md](./GLOBAL-CODE-PREFERENCES.md) first - This contains overarching principles that govern all work on this project
+Read [GLOBAL-CODE-PREFERENCES.md](./GLOBAL-CODE-PREFERENCES.md) first — overarching principles that govern all work.
 
-## Quick Navigation - Single Source of Truth
+## What This Project Is
 
-Each document is the authoritative source for its topic. Other docs reference these sources, never duplicate content.
+**ve-geology** is an [ngdpbase](https://github.com/jwilleke/ngdpbase) add-on that provides volcano and geology data to a wiki platform. It is **not a standalone app** — it runs inside an ngdpbase instance as an external addon loaded via `AddonsManager`.
 
-### Core Documentation (Single Source of Truth)
+The addon:
 
-- [GLOBAL-CODE-PREFERENCES.md](./GLOBAL-CODE-PREFERENCES.md) - **SSoT:** Overarching principles (DRY, secrets management, progressive iteration, project logging)
-- [SETUP.md](./SETUP.md) - **SSoT:** Installation, prerequisites, environment setup, verification steps
-- [CODE_STANDARDS.md](./CODE_STANDARDS.md) - **SSoT:** Naming conventions, code formatting, linting, testing, commit message format, performance guidelines
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - **SSoT:** Project structure, directory conventions, file organization, technology stack
-- [SECURITY.md](./SECURITY.md) - **SSoT:** Secret management, dependency security, authentication, encryption, deployment security
-- [CONTRIBUTING.md](./CONTRIBUTING.md) - **SSoT:** Development workflow, branching strategy, pull request process, code review
-- [DOCUMENTATION.md](./DOCUMENTATION.md) - **SSoT:** Documentation navigation, DRY principles applied to docs, finding the right doc
-- [project_log.md](docs/project_log.md) - **SSoT:** Historical record of work done, next steps, session tracking
+- Imports GVP volcano/eruption data and USGS earthquake/HANS alert data into local JSON snapshots
+- Registers data managers with the ngdpbase engine so plugins can access them
+- Registers seven wiki markup plugins (`[{PluginName param='value'}]` syntax)
+- Mounts REST API routes at `/api/ve-geology/*`
+- Seeds demo wiki pages into the ngdpbase instance on first load
 
-### Auxiliary Documentation
+## Commands
 
-- [README.md](./README.md) - Project overview and quick start (references above docs)
-- [.github/workflows/README.md](.github/workflows/README.md) - CI/CD pipelines and automation
+### Data import
 
-## Context Overview
+```bash
+npm run import                   # Volcanoes only
+npm run import:eruptions         # + eruption records
+npm run import:all               # + eruptions + global activity
+npm run import:earthquakes       # USGS M4.5+ past 7 days
+npm run import:earthquakes:month # USGS M4.5+ past 30 days
+npm run import:hans              # USGS HANS real-time US volcano alerts
+```
 
-- Project Name: `$PROJECT_NAME` (from .env.example)
-- Description: A brief description of what this project does and its primary purpose.
-- Example Project (for reference):
-  - Project Name: `user-auth-service`
-  - Description: A secure authentication microservice that handles user registration, login, JWT token management, and password reset flows for distributed applications.
+Earthquake import requires `volcanoes.json` to exist first (proximity matching).
+All data lands in `addons/ve-geology/data/` (gitignored).
+
+### Lint
+
+```bash
+npm run lint          # ESLint (JS) + markdownlint (all .md)
+npm run lint:fix      # Auto-fix both
+npm run lint:code     # ESLint only  — targets addons/**/*.js
+npm run lint:md       # Markdownlint only
+```
+
+Pre-commit hook runs `npm run lint` automatically via Husky.
+
+### No build step, no test suite
+
+The addon is plain CommonJS JavaScript — no TypeScript compile needed.
+No test suite exists yet (see open issue jwilleke/ve-geology#1 area for future work).
+
+### ngdpbase (sister repo at `/Volumes/hd2A/workspaces/github/ngdpbase`)
+
+```bash
+npm run build          # Compile TypeScript (required after any .ts change)
+./server.sh restart    # Restart via PM2
+./server.sh start      # First start
+pm2 logs ngdpbase-ngdpbase --lines 50   # Tail logs
+```
+
+ngdpbase runs on port 3333. Admin panel at `/admin`, wiki at `/wiki/<slug>`.
+
+## Architecture
+
+### How the addon loads
+
+ngdpbase's `AddonsManager` discovers addons via the `addons-path` config key, finds
+`addons/ve-geology/index.js`, and calls `module.exports.register(engine, config)`.
+The `engine` object provides access to all ngdpbase managers and the Express app.
+
+```
+ngdpbase/src/managers/AddonsManager.ts
+  → loads addons/ve-geology/index.js
+  → calls register(engine, config)
+    → initialises VolcanoDataManager, EarthquakeDataManager, HansDataManager
+    → registers 7 plugins with PluginManager
+    → mounts Express static + API routes
+    → seeds pages/ into ngdpbase data dir (first load only)
+```
+
+### Data flow
+
+```
+External API (GVP WFS / USGS / HANS)
+  → import/*.js scripts          (run manually or via npm run import:*)
+  → addons/ve-geology/data/*.json  (gitignored snapshots)
+  → managers/*DataManager.js     (load on addon start, serve from memory)
+  → plugins/*Plugin.js           (render HTML from manager data)
+  → routes/api.js                (REST endpoints for client-side widgets)
+```
+
+### Plugin system
+
+Plugins are plain objects `{ name, execute(context, params) }` registered with
+ngdpbase's `PluginManager`. The wiki markup `[{PluginName key='val'}]` is resolved
+at page render time. `context.engine.getManager('XxxDataManager')` gives plugin
+access to in-memory data.
+
+### Config keys (set in ngdpbase `app-custom-config.json`)
+
+| Key | Description |
+|-----|-------------|
+| `ngdpbase.managers.addons-manager.addons-path` | Absolute path to ve-geology `addons/` dir |
+| `ngdpbase.addons.ve-geology.enabled` | Enable the addon |
+| `ngdpbase.addons.ve-geology.dataPath` | Path ngdpbase writes/reads data snapshots |
+
+### File layout (only non-obvious parts)
+
+- `addons/ve-geology/index.js` — AddonModule entry; the only file ngdpbase cares about directly
+- `addons/ve-geology/pages/` — `.md` files seeded into ngdpbase on first addon load (never overwrite existing)
+- `addons/ve-geology/public/` — static assets served at `/addons/ve-geology/`
+- `addons/ve-geology/routes/api.js` — all REST routes; receives `engine` so it can call managers
+- `addons/ve-geology/data/` — gitignored JSON snapshots written by import scripts
 
 ## Key Decisions
 
-These may be done initially or as the project progresses. Include "Decision and rationale"
+- **CommonJS, not ESM** — ngdpbase uses CommonJS `require()`. Addon must match.
+- **JSON snapshots, not live API calls** — plugins read pre-imported files for performance and offline resilience. Import scripts are the only place external APIs are called.
+- **Pages seeded, never overwritten** — `seedAddonPages()` in ngdpbase copies `.md` files from `pages/` on first load only. User edits are preserved.
+- **HansDataManager loads silently if `activity.json` is absent** — HANS data is optional; the addon starts cleanly without it.
+- **ESLint config targets TS but addon code is JS** — `.eslintrc.json` is from the project template and is wired for future TS work. Current `lint:code` targets `addons/**/*.js` with plain JS linting rules only.
 
-## Architecture & Tech Stack
+## Open Issues
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for project structure, technology stack, and architectural decisions.
+Track all bugs and features on GitHub:
 
-## Coding Standards
+- jwilleke/ve-geology — addon issues (pagination, FIRMS, VAACs, polling)
+- jwilleke/ngdpbase — platform issues (admin addons panel #412, page conflicts #411)
 
-See [CODE_STANDARDS.md](./CODE_STANDARDS.md) for naming conventions, formatting, linting, testing, and commit message format.
+Key open issues:
 
-## Project Constraints
-
-These may be done initially or as the project progresses.
-
-## Project Log
-
-See [project_log.md](docs/project_log.md) for the required format, historical work record, and tracking next steps.
+| Issue | Repo | Summary |
+|-------|------|---------|
+| #1 | ve-geology | VolcanoList/EarthquakeList pagination |
+| #2 | ve-geology | Plugin syntax quick-reference wiki page |
+| #4 | ve-geology | NASA FIRMS satellite thermal data |
+| #5 | ve-geology | VAAC ash advisories |
+| #6 | ve-geology | MIROVA/MODVOLC satellite monitoring |
+| #7 | ve-geology | VolcanoDiscovery RSS (licensing TBD) |
+| #8 | ve-geology | Periodic refresh via BackgroundJobManager |
+| #411 | ngdpbase | Page name conflict detection |
+| #412 | ngdpbase | Admin panel Add-ons section |
 
 ## Agent Priority Matrix
 
-### Agents CAN Work Autonomously On
+### Agents CAN work autonomously on
 
-- Code refactoring following established patterns
-- Bug fixes for non-critical issues
-- Documentation updates and corrections
-- Writing tests for existing functionality
-- Adding features explicitly described in project_log.md
-- Code quality improvements (linting, formatting, type safety)
-- Dependency updates (patch and minor versions)
-- Performance optimizations with measurable impact
+- Adding new import scripts or data managers following existing patterns
+- Adding new plugins (follow `plugins/*Plugin.js` pattern)
+- Bug fixes and lint/format issues
+- Documentation updates
+- Adding API routes to `routes/api.js`
+- Updating wiki page seeds in `pages/`
+- Dependency updates (patch/minor)
 
-### Agents MUST Request Human Review For
+### Agents MUST request human review for
 
-- Major architectural changes or new patterns
-- Security policy modifications or authentication changes
-- Database schema migrations
-- Deployment to production environments
-- Breaking API changes
-- Major dependency updates (major versions)
-- Changes affecting user data or privacy
-- Modifications to CI/CD pipelines
-- Adding new third-party services or integrations
+- Changes to ngdpbase core (`/Volumes/hd2A/workspaces/github/ngdpbase/src/`)
+- New external data sources (licensing, API key requirements)
+- Changes to the addon's `register()` or `shutdown()` lifecycle
+- Breaking changes to API route shapes (clients may depend on them)
+- Production deployment
 
-## Known Limitations & Constraints
+## Project Log
 
-### Technical Constraints
+See [docs/project_log.md](docs/project_log.md) for session history and next steps.
 
-- Node.js v18+ required
-- TypeScript strict mode must remain enabled
-- All code must pass linting and tests before commit
-- No unencrypted secrets in Git (per GLOBAL-CODE-PREFERENCES.md)
+## Quick Navigation
 
-### Process Constraints
-
-- All work must be done in feature branches
-- Pull requests required for main branch
-- Update project_log.md after each session
-- Update this file's `last_updated` timestamp when making changes
-
-### Agent-Specific Guidelines
-
-- Always read this file before starting work
-- Check blockers array before proceeding
-- Respect the priority matrix above
-- When uncertain, ask for human guidance
-- Document all assumptions and decisions
-
-## Notes & Context
-
-Add any additional notes, context, or information that agents should know here. Examples:
-
-- Known blockers preventing progress (also update YAML frontmatter)
-- External dependencies or services required
-- Database schema or API contracts
-- Team communication channels or review processes
-- Performance benchmarks or SLA requirements
-
-## GitHub Workflow
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for branching strategy, commit guidelines, pull request process, and testing requirements.
-
-**Important:** Keep this file synchronized and updated. This is the bridge between different experts working on the same project.
+- [README.md](./README.md) — Setup and repo layout
+- [addons/ve-geology/README.md](./addons/ve-geology/README.md) — Plugin syntax and API reference
+- [GLOBAL-CODE-PREFERENCES.md](./GLOBAL-CODE-PREFERENCES.md) — Overarching principles
+- [CODE_STANDARDS.md](./CODE_STANDARDS.md) — Linting, formatting, commit conventions
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — To be filled with ve-geology-specific detail
+- [docs/project_log.md](docs/project_log.md) — Session log
