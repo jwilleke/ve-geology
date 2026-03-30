@@ -30,6 +30,7 @@ npm run import:hans         # USGS HANS US volcano alert levels
 ```
 
 Data is written to `addons/ve-geology/data/` (gitignored). Re-run any time to refresh.
+For all import options (custom feeds, data directories) see [addons/ve-geology/README.md](./addons/ve-geology/README.md#import-scripts).
 
 ## Step 3 — Wire to ngdpbase
 

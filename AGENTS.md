@@ -107,21 +107,8 @@ ngdpbase's `PluginManager`. The wiki markup `[{PluginName key='val'}]` is resolv
 at page render time. `context.engine.getManager('XxxDataManager')` gives plugin
 access to in-memory data.
 
-### Config keys (set in ngdpbase `app-custom-config.json`)
-
-| Key | Description |
-|-----|-------------|
-| `ngdpbase.managers.addons-manager.addons-path` | Absolute path to ve-geology `addons/` dir |
-| `ngdpbase.addons.ve-geology.enabled` | Enable the addon |
-| `ngdpbase.addons.ve-geology.dataPath` | Path ngdpbase writes/reads data snapshots |
-
-### File layout (only non-obvious parts)
-
-- `addons/ve-geology/index.js` — AddonModule entry; the only file ngdpbase cares about directly
-- `addons/ve-geology/pages/` — `.md` files seeded into ngdpbase on first addon load (never overwrite existing)
-- `addons/ve-geology/public/` — static assets served at `/addons/ve-geology/`
-- `addons/ve-geology/routes/api.js` — all REST routes; receives `engine` so it can call managers
-- `addons/ve-geology/data/` — gitignored JSON snapshots written by import scripts
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for repo structure, data pipeline depth, and guide to adding new data sources.
+See [addons/ve-geology/README.md](./addons/ve-geology/README.md) for config keys, plugin syntax, and API reference.
 
 ## Key Decisions
 
@@ -182,5 +169,5 @@ See [docs/project_log.md](docs/project_log.md) for session history and next step
 - [addons/ve-geology/README.md](./addons/ve-geology/README.md) — Plugin syntax and API reference
 - [GLOBAL-CODE-PREFERENCES.md](./GLOBAL-CODE-PREFERENCES.md) — Overarching principles
 - [CODE_STANDARDS.md](./CODE_STANDARDS.md) — Linting, formatting, commit conventions
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — To be filled with ve-geology-specific detail
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — Repo structure, data pipeline, adding new sources
 - [docs/project_log.md](docs/project_log.md) — Session log
