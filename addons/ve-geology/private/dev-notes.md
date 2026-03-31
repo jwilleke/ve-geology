@@ -2,6 +2,16 @@
 
 ## 2026-03-30
 
+ngdpbase shows
+.env
+FAST_STORAGE=./data
+SLOW_STORAGE=./data
+
+/Volumes/hd2A/workspaces/github/ngdpbase/config/app-default-config.json
+shows:
+"ngdpbase.page.provider.filesystem.storagedir": "${SLOW_STORAGE}/pages",
+"ngdpbase.page.provider.filesystem.requiredpagesdir": "./required-pages",
+
 In the configuration we need to have addons point to a different:
  "ngdpbase.front-page": "Welcome"
 

@@ -28,16 +28,39 @@ This document tracks ongoing work and session history for the ve-geology project
 ## Next Steps
 
 - ~~Add pagination to VolcanoList and EarthquakeList (ve-geology#1)~~ ✓ done
-- Implement periodic data refresh via BackgroundJobManager (ve-geology#8)
-- Add end-user plugin documentation wiki pages (ve-geology#9)
-- Add pagination to VolcanoList and EarthquakeList (ve-geology#1)
+- ~~Add end-user plugin documentation wiki pages (ve-geology#9)~~ ✓ done
+- Implement periodic data refresh via BackgroundJobManager (ve-geology#8) — requires human review (touches register() lifecycle)
 - Implement `system-category: addon` in ngdpbase seedAddonPages (ngdpbase#414)
 - Implement Domain vs Additive addon type distinction (ngdpbase#415)
 - Admin panel Add-ons section (ngdpbase#412)
+- New data sources (ve-geology#4 FIRMS, #5 VAACs, #6 MIROVA, #7 VolcanoDiscovery) — require licensing/API key review
 
 ---
 
 ## Session Logs
+
+### 2026-03-31-01
+
+- **Agent:** Claude Sonnet 4.6
+- **Subject:** End-user plugin documentation (ve-geology#9); close ve-geology#1
+- **Work Done:**
+  - Closed ve-geology#1 (pagination already done in commit abd6030)
+  - Created `pages/ve-geology-plugins.md` — editor-focused guide covering all 7 plugins with
+    what-it-renders descriptions, copy-paste markup examples, filter combinations, and data
+    freshness notes; seeded at `/wiki/ve-geology-plugins`
+  - Created `pages/ve-geology-about.md` — addon context page covering data sources (GVP, USGS,
+    HANS), data freshness/cadence, plugin summary table, and links to source portals;
+    seeded at `/wiki/ve-geology-about`
+  - Updated `addons/ve-geology/README.md` — added HansAlerts to plugin table, added realistic
+    "common use" examples after each parameter table, added link to in-wiki user guide
+  - Issues #4–7 (new external data sources) and #8 (BackgroundJobManager) flagged for human
+    review per AGENTS.md (new data source licensing; register() lifecycle change)
+- **Commits:** (this session)
+- **Files Modified:**
+  - `addons/ve-geology/pages/ve-geology-plugins.md` (new)
+  - `addons/ve-geology/pages/ve-geology-about.md` (new)
+  - `addons/ve-geology/README.md`
+  - `docs/project_log.md`
 
 ### 2026-03-30-05
 

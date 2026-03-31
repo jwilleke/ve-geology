@@ -4,16 +4,20 @@ Volcano & geology data platform for [ngdpbase](https://github.com/jwilleke/ngdpb
 [Global Volcanism Program (GVP)](https://volcano.si.edu/) and
 [USGS Earthquake Hazards Program](https://earthquake.usgs.gov/) data.
 
+For end-user documentation (what renders, when to use each plugin, example combinations),
+see the in-wiki guide seeded at `/wiki/ve-geology-plugins`.
+
 ## Plugins
 
 | Tag | Description |
 |-----|-------------|
 | `[{VolcanoInfobox number='...'}]` | Full infobox for a single volcano |
-| `[{VolcanoList country='...'}]` | Filtered table of volcanoes |
+| `[{VolcanoList country='...'}]` | Filtered, paginated table of volcanoes |
 | `[{VolcanoSearch}]` | Live search widget with dropdowns |
 | `[{VolcanoMap}]` | Leaflet map of volcanoes |
-| `[{EarthquakeList}]` | Filtered table of recent earthquakes |
+| `[{EarthquakeList}]` | Filtered, paginated table of recent earthquakes |
 | `[{EarthquakeMap}]` | Leaflet map of recent earthquakes |
+| `[{HansAlerts}]` | US volcano alert level table (USGS HANS) |
 
 ---
 
@@ -32,6 +36,9 @@ Renders a full infobox for a single volcano with GVP link, coordinates, type, ro
 |-----------|---------|-------------|
 | `number` | *(required)* | GVP volcano number |
 | `style` | `default` | `default` (full infobox) or `compact` (inline name span) |
+
+**Common use:** Add a `default` infobox at the top of a volcano-specific wiki page, or use
+`compact` inline within body text — e.g. "…near [{VolcanoInfobox number='332010' style='compact'}]…"
 
 ---
 
@@ -57,6 +64,10 @@ Renders a filtered table of volcanoes. GVP numbers link to the Smithsonian volca
 | `limit` | `25` | Max rows |
 | `offset` | `0` | Pagination offset |
 
+**Common use:** `[{VolcanoList country='Japan' epoch='Holocene' limit='20'}]` for a country
+page sidebar; `[{VolcanoList volcanoType='Caldera' limit='50'}]` for a type-specific browse page.
+Previous / Next pagination controls render automatically when results exceed `limit`.
+
 ---
 
 ### VolcanoSearch
@@ -73,6 +84,9 @@ Renders an interactive live-search widget with dropdowns for country, region, vo
 | `defaultEpoch` | | Pre-select epoch dropdown |
 | `defaultCountry` | | Pre-select country dropdown |
 | `defaultLimit` | `25` | Results per page |
+
+**Common use:** `[{VolcanoSearch defaultEpoch='Holocene' defaultLimit='50'}]` on a main
+volcano browse page; combine with VolcanoMap below it for a full explore experience.
 
 ---
 
@@ -98,6 +112,9 @@ Renders a Leaflet map. Red markers = Holocene, blue = Pleistocene.
 | `lat` / `lon` | `20` / `0` | Initial centre |
 | `zoom` | `2` | Initial zoom level |
 
+**Common use:** `[{VolcanoMap country='Indonesia' lat='-2' lon='118' zoom='4' height='500'}]`
+for a country page; `[{VolcanoMap epoch='Holocene'}]` for a global overview.
+
 ---
 
 ### EarthquakeList
@@ -121,6 +138,10 @@ Renders a filtered table of recent earthquakes with PAGER alert badges, tsunami 
 | `limit` | `50` | Max rows |
 | `offset` | `0` | Pagination offset |
 
+**Common use:** `[{EarthquakeList nearVolcano='true' minMagnitude='4.5' limit='25'}]` on a
+seismic monitoring page; `[{EarthquakeList alert='red' limit='10'}]` for a hazard summary widget.
+Previous / Next pagination controls render automatically when results exceed `limit`.
+
 ---
 
 ### EarthquakeMap
@@ -141,6 +162,29 @@ Renders a Leaflet map of earthquakes coloured by PAGER alert level, with an opti
 | `height` | `450` | Map height in px |
 | `lat` / `lon` | `20` / `0` | Initial centre |
 | `zoom` | `2` | Initial zoom level |
+
+**Common use:** `[{EarthquakeMap nearVolcano='true' showVolcanoes='true' height='500'}]` as a
+companion to EarthquakeList; `[{EarthquakeMap minMagnitude='6'}]` for major-event tracking.
+
+---
+
+### HansAlerts
+
+Renders a table of US volcano alert levels from the USGS HANS API. By default shows only
+volcanoes at ADVISORY level or above. Filter by observatory to show a regional subset.
+
+```
+[{HansAlerts}]
+[{HansAlerts observatory='avo'}]
+[{HansAlerts observatory='hvo'}]
+```
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `observatory` | | Filter by observatory code: `avo`, `hvo`, `cvo`, `yvo`, `uvo` |
+
+**Common use:** `[{HansAlerts}]` on a US hazard summary page; `[{HansAlerts observatory='avo'}]`
+on an Alaska-specific page. Covers US volcanoes only.
 
 ---
 
