@@ -46,3 +46,6 @@ addons/ve-geology/data/global-activity.json
 addons/ve-geology/data/earthquakes.json
 addons/ve-geology/data/activity.json
 ve-geology.code-workspace
+
+# Private notes (never commit)
+private/
