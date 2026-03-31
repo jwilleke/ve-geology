@@ -1,6 +1,6 @@
 {
   "name": "ve-geology",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Volcano & geology add-on for ngdpbase",
   "private": true,
   "scripts": {
@@ -14,12 +14,13 @@
     "lint": "npm run lint:code && npm run lint:md",
     "lint:code": "eslint addons/**/*.js",
     "lint:code:fix": "eslint addons/**/*.js --fix",
-    "lint:md": "npx markdownlint \"**/*.md\" --ignore node_modules",
-    "lint:md:fix": "npx markdownlint \"**/*.md\" --ignore node_modules --fix",
+    "lint:md": "npx markdownlint \"**/*.md\" --ignore node_modules --ignore private",
+    "lint:md:fix": "npx markdownlint \"**/*.md\" --ignore node_modules --ignore private --fix",
     "lint:fix": "npm run lint:code:fix && npm run lint:md:fix",
     "format": "prettier --write \"addons/**/*.js\"",
     "format:check": "prettier --check \"addons/**/*.js\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "version:bump": "tsx src/utils/version.ts"
   },
   "dependencies": {
     "express": "^4.18.0",
@@ -31,7 +32,9 @@
     "eslint": "^8.0.0",
     "husky": "^8.0.0",
     "markdownlint-cli": "^0.48.0",
-    "prettier": "^3.0.0"
+    "prettier": "^3.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18.0.0",

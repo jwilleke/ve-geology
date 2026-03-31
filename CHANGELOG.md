@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-03-31
+
+### Added
+
+- `src/utils/version.ts` — SEMVER bump utility; updates `package.json`, `addons/ve-geology/index.js`, and `CHANGELOG.md` atomically (`npm run version:bump -- <major|minor|patch|x.y.z>`)
+- End-user plugin guide seeded at `/wiki/ve-geology-plugins`
+- Addon context/about page seeded at `/wiki/ve-geology-about`
+- Periodic data refresh via ngdpbase `BackgroundJobManager` — `ve-geology.import-hans` and `ve-geology.import-earthquakes` jobs with configurable polling intervals
+
+### Changed
+
+- All import scripts now export `runImport()` for programmatic use; CLI entry gated behind `require.main === module`
+- `addons/ve-geology/README.md` — added `HansAlerts` to plugin table, realistic examples per plugin, link to in-wiki guide
+
+### Fixed
+
+- Added missing `uuid` front-matter to four seeded pages (`ve-geology-hans`, `ve-geology-home`, `ve-geology-about`, `ve-geology-plugins`) — absence caused ngdpbase `FileSystemProvider` to return 409 on any admin edit attempt
+- Removed `.env.example`, `SECURITY.md`, `TEMPLATE_INTEGRATION.md` — unused template boilerplate not applicable to this addon
+
 ## [1.0.0] - 2026-03-31
 
 ### Added
@@ -36,4 +55,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Addon context page at `/wiki/ve-geology-about`
 - ESLint + markdownlint + Prettier + Husky pre-commit hook
 
+[1.0.1]: https://github.com/jwilleke/ve-geology/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/jwilleke/ve-geology/releases/tag/v1.0.0

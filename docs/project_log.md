@@ -22,8 +22,8 @@ This document tracks ongoing work and session history for the ve-geology project
 
 - **Phase:** Active development — core addon complete, data sources expanding
 - **Build Status:** No build step (CommonJS JS). Lint passing (`npm run lint`)
-- **Last Updated:** 2026-03-30
-- **Overall Health:** Stable. ngdpbase running on port 3333. 4 data sources integrated. Domain home page live at `/`.
+- **Last Updated:** 2026-03-31
+- **Overall Health:** Stable. ngdpbase running on port 3333. 4 data sources integrated. Domain home page live at `/`. v1.0.1 released.
 
 ## Next Steps
 
@@ -38,6 +38,31 @@ This document tracks ongoing work and session history for the ve-geology project
 ---
 
 ## Session Logs
+
+### 2026-03-31-03
+
+- **Agent:** Claude Sonnet 4.6
+- **Subject:** SEMVER setup, cleanup, 409 fix, v1.0.1 release
+- **Work Done:**
+  - Added `src/utils/version.ts` — bumps version atomically across `package.json`, `index.js`, `CHANGELOG.md`; added `npm run version:bump` script; installed `tsx` + `typescript` devDeps
+  - Added `CHANGELOG.md` following Keep a Changelog format; tagged `v1.0.0`
+  - Released `v1.0.1`: deleted unused template boilerplate (`.env.example`, `SECURITY.md`, `TEMPLATE_INTEGRATION.md`); added `.markdownlintignore` to exclude `private/`; updated `lint:md` scripts
+  - Fixed 409 Page Conflict on admin edit: added missing `uuid` front-matter to `ve-geology-hans`, `ve-geology-home`, `ve-geology-about`, `ve-geology-plugins`; patched live ngdpbase pages directly
+  - Consolidated `addons/ve-geology/private/dev-notes.md` into root `private/dev-notes.md`; added `private/` to `.gitignore`
+  - Updated ngdpbase#411 with workaround details
+- **Commits:** `2255932` `147e488` `1bd7975` `c6e64b3` `084b988` + this session
+- **Files Modified:**
+  - `src/utils/version.ts` (new)
+  - `CHANGELOG.md`
+  - `package.json`
+  - `addons/ve-geology/index.js`
+  - `addons/ve-geology/pages/ve-geology-hans.md`
+  - `addons/ve-geology/pages/ve-geology-home.md`
+  - `addons/ve-geology/pages/ve-geology-about.md`
+  - `addons/ve-geology/pages/ve-geology-plugins.md`
+  - `.gitignore`
+  - `.markdownlintignore`
+  - `docs/project_log.md`
 
 ### 2026-03-31-02
 
