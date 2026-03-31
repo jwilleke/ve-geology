@@ -29,7 +29,7 @@ This document tracks ongoing work and session history for the ve-geology project
 
 - ~~Add pagination to VolcanoList and EarthquakeList (ve-geology#1)~~ ✓ done
 - ~~Add end-user plugin documentation wiki pages (ve-geology#9)~~ ✓ done
-- Implement periodic data refresh via BackgroundJobManager (ve-geology#8) — requires human review (touches register() lifecycle)
+- ~~Implement periodic data refresh via BackgroundJobManager (ve-geology#8)~~ ✓ done
 - Implement `system-category: addon` in ngdpbase seedAddonPages (ngdpbase#414)
 - Implement Domain vs Additive addon type distinction (ngdpbase#415)
 - Admin panel Add-ons section (ngdpbase#412)
@@ -38,6 +38,32 @@ This document tracks ongoing work and session history for the ve-geology project
 ---
 
 ## Session Logs
+
+### 2026-03-31-02
+
+- **Agent:** Claude Sonnet 4.6
+- **Subject:** Periodic data refresh via BackgroundJobManager (ve-geology#8)
+- **Work Done:**
+  - Refactored all three import scripts to export `runImport()` functions without side-effects
+    at module load — CLI entry point gated behind `require.main === module`
+  - `import-hans.js`: extracted `runImport(dataDir)` → returns `{ elevatedCount, monitoredCount }`
+  - `import-earthquakes.js`: extracted `runImport(dataDir, feedName)` → returns `{ total, nearVolcano }`;
+    moved CLI arg validation inside the `require.main` guard
+  - `import-volcanoes.js`: extracted `runImport(dataDir, { eruptions, activity })` → returns
+    `{ total, holocene, pleistocene }`; CLI flags parsed only when run directly
+  - `index.js`: added `runHansImport` / `runEarthquakeImport` requires; added `_intervals` array;
+    registered `ve-geology.import-hans` and `ve-geology.import-earthquakes` jobs with
+    BackgroundJobManager; scheduled polling via `setInterval`; clears intervals in `shutdown()`
+  - Config keys: `hansIntervalMs` (default 600 000 ms / 10 min), `eqIntervalMs` (default 1 200 000 ms / 20 min); set to `0` to disable
+  - BackgroundJobManager is optional — addon starts cleanly if manager not available
+  - After each job the corresponding manager calls `load()` to hot-reload snapshot into memory
+- **Commits:** (this session)
+- **Files Modified:**
+  - `addons/ve-geology/import/import-hans.js`
+  - `addons/ve-geology/import/import-earthquakes.js`
+  - `addons/ve-geology/import/import-volcanoes.js`
+  - `addons/ve-geology/index.js`
+  - `docs/project_log.md`
 
 ### 2026-03-31-01
 

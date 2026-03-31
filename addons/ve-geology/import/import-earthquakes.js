@@ -14,8 +14,13 @@
  *   node import/import-earthquakes.js --feed=4.5-month
  *   node import/import-earthquakes.js --data-dir /custom/path
  *
+ * Programmatic:
+ *   const { runImport } = require('./import-earthquakes');
+ *   const result = await runImport('/path/to/data', '4.5-week');
+ *   // result: { total, nearVolcano }
+ *
  * Available feeds:
- *   significant-week  (default-ish, notable events)
+ *   significant-week  (notable events)
  *   4.5-week          (default — M4.5+ past 7 days)
  *   2.5-week          (M2.5+ past 7 days)
  *   4.5-month         (M4.5+ past 30 days)
@@ -37,22 +42,6 @@ const FEEDS = {
 
 const DEFAULT_FEED = '4.5-week';
 const PROXIMITY_KM = 50;
-
-// ── CLI args ─────────────────────────────────────────────────────────────────
-const args = process.argv.slice(2);
-const feedArg = args.find(a => a.startsWith('--feed='));
-const feedName = feedArg ? feedArg.split('=')[1] : DEFAULT_FEED;
-
-if (!FEEDS[feedName]) {
-  console.error(`Unknown feed: ${feedName}`);
-  console.error(`Available: ${Object.keys(FEEDS).join(', ')}`);
-  process.exit(1);
-}
-
-const dataDirIdx = args.indexOf('--data-dir');
-const dataDir = dataDirIdx >= 0 && args[dataDirIdx + 1]
-  ? args[dataDirIdx + 1]
-  : path.join(__dirname, '..', 'data');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -114,7 +103,7 @@ function mapEarthquake(feature, volcanoes) {
   return eq;
 }
 
-function loadVolcanoes() {
+function loadVolcanoes(dataDir) {
   const volcanoesPath = path.join(dataDir, 'volcanoes.json');
   if (!fs.existsSync(volcanoesPath)) {
     console.warn('Warning: volcanoes.json not found — run import-volcanoes.js first.');
@@ -124,15 +113,26 @@ function loadVolcanoes() {
   return JSON.parse(fs.readFileSync(volcanoesPath, 'utf8'));
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
+// ── Core import function ─────────────────────────────────────────────────────
 
-async function main() {
+/**
+ * Import earthquake data and write earthquakes.json.
+ *
+ * @param {string} dataDir   Path to the ve-geology data directory
+ * @param {string} [feedName='4.5-week']  USGS feed name
+ * @returns {{ total: number, nearVolcano: number }}
+ */
+async function runImport(dataDir, feedName = DEFAULT_FEED) {
+  if (!FEEDS[feedName]) {
+    throw new Error(`Unknown feed: ${feedName}. Available: ${Object.keys(FEEDS).join(', ')}`);
+  }
+
   const feedUrl = FEEDS[feedName];
   console.log('Importing earthquake data from USGS…\n');
   console.log(`Feed: ${feedName}`);
   console.log(`URL:  ${feedUrl}\n`);
 
-  const volcanoes = loadVolcanoes();
+  const volcanoes = loadVolcanoes(dataDir);
   if (volcanoes.length > 0) {
     console.log(`Loaded ${volcanoes.length} volcanoes for proximity matching (${PROXIMITY_KM} km radius)\n`);
   }
@@ -147,14 +147,14 @@ async function main() {
   console.log(`  Received ${data.features.length} earthquakes (${data.metadata.title})`);
 
   const earthquakes = data.features.map(f => mapEarthquake(f, volcanoes));
-  const nearVolcano = earthquakes.filter(e => e.nearestVolcano);
+  const nearVolcanoList = earthquakes.filter(e => e.nearestVolcano);
 
   const snapshot = {
     fetchedUtc:      new Date().toISOString(),
     feed:            feedName,
     earthquakes,
     totalCount:      earthquakes.length,
-    nearVolcanoCount: nearVolcano.length,
+    nearVolcanoCount: nearVolcanoList.length,
   };
 
   if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
@@ -164,12 +164,12 @@ async function main() {
 
   console.log('\nEarthquake import complete:');
   console.log(`  Total earthquakes:        ${earthquakes.length}`);
-  console.log(`  Near volcanoes (≤${PROXIMITY_KM} km):  ${nearVolcano.length}`);
+  console.log(`  Near volcanoes (≤${PROXIMITY_KM} km):  ${nearVolcanoList.length}`);
   console.log(`  Written to:               ${outputPath}`);
 
-  if (nearVolcano.length > 0) {
+  if (nearVolcanoList.length > 0) {
     console.log('\nEarthquakes near volcanoes:');
-    for (const eq of nearVolcano.sort((a, b) => b.magnitude - a.magnitude)) {
+    for (const eq of nearVolcanoList.sort((a, b) => b.magnitude - a.magnitude)) {
       const v = eq.nearestVolcano;
       console.log(`  M${eq.magnitude.toFixed(1)} ${eq.place.padEnd(40)} ${v.distanceKm} km from ${v.volcanoName}`);
     }
@@ -185,9 +185,31 @@ async function main() {
     if (m5plus   > 0) console.log(`  M5+ earthquakes:    ${m5plus}`);
     if (tsunamis > 0) console.log(`  Tsunami advisories: ${tsunamis}`);
   }
+
+  return { total: earthquakes.length, nearVolcano: nearVolcanoList.length };
 }
 
-main().catch(err => {
-  console.error('Earthquake import failed:', err.message);
-  process.exit(1);
-});
+module.exports = { runImport, FEEDS, DEFAULT_FEED };
+
+// ── CLI entry point ───────────────────────────────────────────────────────────
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  const feedArg = args.find(a => a.startsWith('--feed='));
+  const feedName = feedArg ? feedArg.split('=')[1] : DEFAULT_FEED;
+
+  if (!FEEDS[feedName]) {
+    console.error(`Unknown feed: ${feedName}`);
+    console.error(`Available: ${Object.keys(FEEDS).join(', ')}`);
+    process.exit(1);
+  }
+
+  const dataDirIdx = args.indexOf('--data-dir');
+  const dataDir = dataDirIdx >= 0 && args[dataDirIdx + 1]
+    ? args[dataDirIdx + 1]
+    : path.join(__dirname, '..', 'data');
+
+  runImport(dataDir, feedName).catch(err => {
+    console.error('Earthquake import failed:', err.message);
+    process.exit(1);
+  });
+}

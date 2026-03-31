@@ -12,6 +12,11 @@
  *   node import/import-hans.js
  *   node import/import-hans.js --data-dir /custom/path
  *
+ * Programmatic:
+ *   const { runImport } = require('./import-hans');
+ *   const result = await runImport('/path/to/data');
+ *   // result: { elevatedCount, monitoredCount }
+ *
  * No auth required. US volcanoes only (65 monitored).
  *
  * Output: {dataDir}/activity.json
@@ -21,12 +26,6 @@ const fs   = require('fs');
 const path = require('path');
 
 const HANS_API = 'https://volcanoes.usgs.gov/hans-public/api';
-
-const args      = process.argv.slice(2);
-const dataDirIdx = args.indexOf('--data-dir');
-const dataDir   = dataDirIdx >= 0 && args[dataDirIdx + 1]
-  ? args[dataDirIdx + 1]
-  : path.join(__dirname, '..', 'data');
 
 async function fetchJson(endpoint, label) {
   const url = `${HANS_API}${endpoint}`;
@@ -38,7 +37,13 @@ async function fetchJson(endpoint, label) {
   return res.json();
 }
 
-async function main() {
+/**
+ * Import HANS volcano alert data and write activity.json.
+ *
+ * @param {string} dataDir  Path to the ve-geology data directory
+ * @returns {{ elevatedCount: number, monitoredCount: number }}
+ */
+async function runImport(dataDir) {
   console.log('Importing volcano activity from USGS HANS API...\n');
 
   const [elevated, dailySummary, monitored] = await Promise.all([
@@ -98,9 +103,22 @@ async function main() {
       console.log(`  ${a.colorCode.padEnd(6)} ${a.alertLevel.padEnd(8)} ${a.volcanoName} (${a.observatoryAbbr.toUpperCase()})`);
     }
   }
+
+  return { elevatedCount: elevatedVolcanoes.length, monitoredCount };
 }
 
-main().catch(err => {
-  console.error('HANS import failed:', err.message);
-  process.exit(1);
-});
+module.exports = { runImport };
+
+// ── CLI entry point ───────────────────────────────────────────────────────────
+if (require.main === module) {
+  const args      = process.argv.slice(2);
+  const dataDirIdx = args.indexOf('--data-dir');
+  const dataDir   = dataDirIdx >= 0 && args[dataDirIdx + 1]
+    ? args[dataDirIdx + 1]
+    : path.join(__dirname, '..', 'data');
+
+  runImport(dataDir).catch(err => {
+    console.error('HANS import failed:', err.message);
+    process.exit(1);
+  });
+}

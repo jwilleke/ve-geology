@@ -12,6 +12,10 @@
  *   "ngdpbase.addons.ve-geology.enabled": true,
  *   "ngdpbase.addons.ve-geology.dataPath": "./data/ve-geology"
  *
+ * Optional polling config (set to 0 to disable):
+ *   "ngdpbase.addons.ve-geology.hansIntervalMs": 600000   (default 10 min)
+ *   "ngdpbase.addons.ve-geology.eqIntervalMs":  1200000  (default 20 min)
+ *
  * Import data first:
  *   node addons/ve-geology/import/import-volcanoes.js
  *   node addons/ve-geology/import/import-volcanoes.js --eruptions
@@ -33,6 +37,8 @@ const VolcanoMapPlugin       = require('./plugins/VolcanoMapPlugin');
 const EarthquakeListPlugin   = require('./plugins/EarthquakeListPlugin');
 const EarthquakeMapPlugin    = require('./plugins/EarthquakeMapPlugin');
 const HansAlertPlugin        = require('./plugins/HansAlertPlugin');
+const { runImport: runHansImport }       = require('./import/import-hans');
+const { runImport: runEarthquakeImport } = require('./import/import-earthquakes');
 
 /** @type {VolcanoDataManager | null} */
 let dataManager = null;
@@ -40,6 +46,9 @@ let dataManager = null;
 let earthquakeManager = null;
 /** @type {HansDataManager | null} */
 let hansManager = null;
+
+/** @type {ReturnType<typeof setInterval>[]} */
+const _intervals = [];
 
 module.exports = {
   name: 've-geology',
@@ -100,7 +109,54 @@ module.exports = {
     const apiRouter = require('./routes/api')(engine, config);
     engine.app.use('/api/ve-geology', apiRouter);
 
-    // ── 6. Announce optional capability ─────────────────────────────────────
+    // ── 6. Register background refresh jobs ─────────────────────────────────
+    const jobManager = engine.getManager('BackgroundJobManager');
+    if (jobManager) {
+      jobManager.registerJob({
+        id: 've-geology.import-hans',
+        displayName: 'Refresh HANS volcano alerts',
+        run: async (reportProgress) => {
+          reportProgress('Fetching USGS HANS API…');
+          const result = await runHansImport(dataPath);
+          await hansManager.load();
+          return {
+            success: true,
+            summary: `${result.elevatedCount} elevated of ${result.monitoredCount} monitored`
+          };
+        }
+      });
+
+      jobManager.registerJob({
+        id: 've-geology.import-earthquakes',
+        displayName: 'Refresh earthquake data',
+        run: async (reportProgress) => {
+          reportProgress('Fetching USGS earthquake feed…');
+          const result = await runEarthquakeImport(dataPath);
+          await earthquakeManager.load();
+          return {
+            success: true,
+            summary: `${result.total} earthquakes (${result.nearVolcano} near volcanoes)`
+          };
+        }
+      });
+
+      // Schedule polling intervals (0 = disabled)
+      const hansIntervalMs = Number(config.hansIntervalMs ?? 10 * 60 * 1000);
+      const eqIntervalMs   = Number(config.eqIntervalMs   ?? 20 * 60 * 1000);
+
+      if (hansIntervalMs > 0) {
+        _intervals.push(
+          setInterval(() => jobManager.enqueue('ve-geology.import-hans'), hansIntervalMs)
+        );
+      }
+      if (eqIntervalMs > 0) {
+        _intervals.push(
+          setInterval(() => jobManager.enqueue('ve-geology.import-earthquakes'), eqIntervalMs)
+        );
+      }
+    }
+
+    // ── 7. Announce optional capability ─────────────────────────────────────
     engine.setCapability('ve-geology', true);
   },
 
@@ -118,6 +174,8 @@ module.exports = {
   },
 
   async shutdown() {
+    for (const id of _intervals) clearInterval(id);
+    _intervals.length = 0;
     dataManager       = null;
     earthquakeManager = null;
     hansManager       = null;

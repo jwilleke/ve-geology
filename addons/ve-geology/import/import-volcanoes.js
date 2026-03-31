@@ -5,9 +5,9 @@
  * Import volcano data from the GVP (Global Volcanism Program) WFS API.
  *
  * Outputs:
- *   data/volcanoes.json     — always generated
- *   data/eruptions.json     — requires --eruptions flag
- *   data/global-activity.json — requires --activity flag
+ *   data/volcanoes.json       — always generated
+ *   data/eruptions.json       — requires eruptions: true
+ *   data/global-activity.json — requires activity: true
  *
  * Usage:
  *   node import/import-volcanoes.js
@@ -15,6 +15,11 @@
  *   node import/import-volcanoes.js --activity
  *   node import/import-volcanoes.js --eruptions --activity
  *   node import/import-volcanoes.js --data-dir /custom/path
+ *
+ * Programmatic:
+ *   const { runImport } = require('./import-volcanoes');
+ *   const result = await runImport('/path/to/data', { eruptions: true });
+ *   // result: { total, holocene, pleistocene }
  */
 
 const fs   = require('fs');
@@ -28,15 +33,6 @@ const ENDPOINTS = {
   holoceneEruptions:   'Smithsonian_VOTW_Holocene_Eruptions',
   eruptionsSince1960:  'E3WebApp_Eruptions1960',
 };
-
-// ── CLI arg parsing ──────────────────────────────────────────────────────────
-const args = process.argv.slice(2);
-const includeEruptions = args.includes('--eruptions');
-const includeActivity  = args.includes('--activity');
-const dataDirIdx = args.indexOf('--data-dir');
-const dataDir = dataDirIdx >= 0 && args[dataDirIdx + 1]
-  ? args[dataDirIdx + 1]
-  : path.join(__dirname, '..', 'data');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -149,9 +145,19 @@ function mapContinuingEruption(props) {
   };
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
+// ── Core import function ─────────────────────────────────────────────────────
 
-async function main() {
+/**
+ * Import GVP volcano data and write volcanoes.json (always), eruptions.json,
+ * and global-activity.json (when requested via flags).
+ *
+ * @param {string} dataDir
+ * @param {{ eruptions?: boolean, activity?: boolean }} [flags]
+ * @returns {{ total: number, holocene: number, pleistocene: number }}
+ */
+async function runImport(dataDir, flags = {}) {
+  const { eruptions: includeEruptions = false, activity: includeActivity = false } = flags;
+
   console.log('Importing volcano data from GVP WFS API…\n');
 
   if (!fs.existsSync(dataDir)) {
@@ -221,9 +227,24 @@ async function main() {
       }
     }
   }
+
+  return { total: allVolcanoes.length, holocene: holoceneVolcanoes.length, pleistocene: pleistoceneVolcanoes.length };
 }
 
-main().catch(err => {
-  console.error('Import failed:', err.message);
-  process.exit(1);
-});
+module.exports = { runImport };
+
+// ── CLI entry point ───────────────────────────────────────────────────────────
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  const includeEruptions = args.includes('--eruptions');
+  const includeActivity  = args.includes('--activity');
+  const dataDirIdx = args.indexOf('--data-dir');
+  const dataDir = dataDirIdx >= 0 && args[dataDirIdx + 1]
+    ? args[dataDirIdx + 1]
+    : path.join(__dirname, '..', 'data');
+
+  runImport(dataDir, { eruptions: includeEruptions, activity: includeActivity }).catch(err => {
+    console.error('Import failed:', err.message);
+    process.exit(1);
+  });
+}
