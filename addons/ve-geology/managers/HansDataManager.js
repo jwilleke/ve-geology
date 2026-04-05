@@ -85,6 +85,41 @@ class HansDataManager {
     return results;
   }
 
+  /**
+   * Returns a pre-formatted string suitable for use as MarqueePlugin text.
+   * Alerts sorted WARNING → WATCH → ADVISORY (most severe first).
+   *
+   * Common options (from ManagerFetchOptions):
+   *   limit — max number of alerts to include (0 = all)
+   *
+   * Domain-specific options:
+   *   alertLevel  — filter by NORMAL | ADVISORY | WATCH | WARNING
+   *   colorCode   — filter by GREEN | YELLOW | ORANGE | RED
+   *   observatory — filter by observatory abbreviation (avo, hvo, …)
+   *
+   * @param {Record<string, string>} [options]
+   * @returns {string}
+   */
+  toMarqueeText(options = {}) {
+    const { limit, alertLevel, colorCode, observatory } = options;
+
+    const order = { WARNING: 0, WATCH: 1, ADVISORY: 2 };
+    let alerts = [...this.alertsByNumber.values()]
+      .sort((a, b) => (order[a.alertLevel] ?? 9) - (order[b.alertLevel] ?? 9));
+
+    if (alertLevel)  alerts = alerts.filter(a => a.alertLevel?.toUpperCase()     === alertLevel.toUpperCase());
+    if (colorCode)   alerts = alerts.filter(a => a.colorCode?.toUpperCase()      === colorCode.toUpperCase());
+    if (observatory) alerts = alerts.filter(a => a.observatoryAbbr?.toLowerCase() === observatory.toLowerCase());
+
+    const n = limit !== undefined ? parseInt(limit, 10) : 0;
+    if (n > 0) alerts = alerts.slice(0, n);
+
+    if (alerts.length === 0) return 'No US volcanoes currently elevated above NORMAL.';
+    return 'VOLCANO ALERTS: ' + alerts
+      .map(a => `${a.volcanoName} \u2014 ${a.alertLevel} (${a.colorCode})`)
+      .join('  \u2022  ');
+  }
+
   /** @returns {object} Status summary for AddonsManager.status() */
   status() {
     return {
