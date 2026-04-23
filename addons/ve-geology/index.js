@@ -156,7 +156,17 @@ module.exports = {
       }
     }
 
-    // ── 7. Announce optional capability ─────────────────────────────────────
+    // ── 7. Dashboard card ────────────────────────────────────────────────────
+    if (addonsManager) {
+      addonsManager.registerDashboardCard({
+        addonName: 've-geology',
+        title: 'VE Geology',
+        icon: 'fas fa-mountain',
+        adminUrl: '/admin/addons'
+      });
+    }
+
+    // ── 8. Announce optional capability ─────────────────────────────────────
     engine.setCapability('ve-geology', true);
   },
 
