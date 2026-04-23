@@ -1,0 +1,189 @@
+<%- include('header', { pageName: 'VE Geology' }) %>
+
+<div class="container-fluid mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+      <i class="fas fa-mountain"></i> VE Geology
+    </h1>
+    <a href="/admin" class="btn btn-sm btn-secondary">
+      <i class="fas fa-arrow-left"></i> Admin
+    </a>
+  </div>
+
+  <%# ── Flash message ─────────────────────────────────────────────────────── %>
+  <% if (flash === 'hans-queued') { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle"></i> HANS refresh job queued.
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  <% } else if (flash === 'eq-queued') { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle"></i> Earthquake refresh job queued.
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  <% } %>
+
+  <%# ── Stats cards ────────────────────────────────────────────────────────── %>
+  <div class="row g-3 mb-4">
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="card text-center h-100">
+        <div class="card-body">
+          <div class="display-6 fw-bold text-primary"><%= volcanoCount %></div>
+          <div class="text-muted small mt-1"><i class="fas fa-mountain"></i> Volcanoes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="card text-center h-100">
+        <div class="card-body">
+          <div class="display-6 fw-bold text-warning"><%= eruptionCount %></div>
+          <div class="text-muted small mt-1"><i class="fas fa-fire"></i> Eruptions</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="card text-center h-100">
+        <div class="card-body">
+          <div class="display-6 fw-bold text-info"><%= earthquakeCount %></div>
+          <div class="text-muted small mt-1">
+            <i class="fas fa-wave-square"></i> Earthquakes
+            <% if (nearVolcanoCount > 0) { %>
+              <span class="badge bg-warning text-dark ms-1"><%= nearVolcanoCount %> near volcano</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="card text-center h-100 <%= hansStatus.elevatedCount > 0 ? 'border-danger' : '' %>">
+        <div class="card-body">
+          <div class="display-6 fw-bold <%= hansStatus.elevatedCount > 0 ? 'text-danger' : 'text-success' %>">
+            <%= hansStatus.elevatedCount %>
+          </div>
+          <div class="text-muted small mt-1">
+            <i class="fas fa-bell"></i> HANS Elevated
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <%# ── HANS status ────────────────────────────────────────────────────────── %>
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span><i class="fas fa-broadcast-tower"></i> HANS Status</span>
+      <% if (isAdmin) { %>
+        <form method="POST" action="/addons/ve-geology/jobs/hans" class="d-inline">
+          <button type="submit" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-sync-alt"></i> Refresh HANS
+          </button>
+        </form>
+      <% } %>
+    </div>
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-3">Last fetched</dt>
+        <dd class="col-sm-9">
+          <% if (hansStatus.fetchedUtc) { %>
+            <%= hansStatus.fetchedUtc %>
+          <% } else { %>
+            <span class="text-muted">Not yet fetched</span>
+          <% } %>
+        </dd>
+        <dt class="col-sm-3">Monitored volcanoes</dt>
+        <dd class="col-sm-9"><%= hansStatus.monitoredCount %></dd>
+        <dt class="col-sm-3">Elevated alerts</dt>
+        <dd class="col-sm-9">
+          <% if (hansStatus.elevatedCount > 0) { %>
+            <span class="badge bg-danger"><%= hansStatus.elevatedCount %></span>
+          <% } else { %>
+            <span class="badge bg-success">0</span>
+          <% } %>
+        </dd>
+      </dl>
+    </div>
+  </div>
+
+  <%# ── Elevated volcanoes ─────────────────────────────────────────────────── %>
+  <% if (elevatedAlerts.length > 0) { %>
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="fas fa-exclamation-triangle text-danger"></i> Elevated Volcano Alerts
+      <% if (hansStatus.elevatedCount > 10) { %>
+        <span class="badge bg-secondary ms-2">showing 10 of <%= hansStatus.elevatedCount %></span>
+      <% } %>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Volcano</th>
+            <th style="width:120px">Alert Level</th>
+            <th style="width:100px">Color</th>
+            <th>Observatory</th>
+            <th>Synopsis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% elevatedAlerts.forEach(function(alert) { %>
+          <tr>
+            <td><strong><%= alert.volcanoName || alert.volcanoNumber %></strong></td>
+            <td>
+              <%
+                var lvl = (alert.alertLevel || '').toUpperCase();
+                var alertClass = lvl === 'WARNING' ? 'danger' :
+                                 lvl === 'WATCH'   ? 'warning' :
+                                 lvl === 'ADVISORY'? 'info'    : 'secondary';
+              %>
+              <span class="badge bg-<%= alertClass %>"><%= alert.alertLevel || '—' %></span>
+            </td>
+            <td>
+              <%
+                var color = (alert.colorCode || '').toUpperCase();
+                var colorClass = color === 'RED'    ? 'danger' :
+                                 color === 'ORANGE' ? 'warning' :
+                                 color === 'YELLOW' ? 'warning' :
+                                 color === 'GREEN'  ? 'success' : 'secondary';
+              %>
+              <span class="badge bg-<%= colorClass %>"><%= alert.colorCode || '—' %></span>
+            </td>
+            <td><small><%= alert.observatoryAbbr || alert.observatory || '—' %></small></td>
+            <td class="text-truncate" style="max-width:300px" title="<%= alert.synopsis || '' %>">
+              <small><%= alert.synopsis || '' %></small>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <% } %>
+
+  <%# ── Import actions ────────────────────────────────────────────────────── %>
+  <% if (isAdmin) { %>
+  <div class="card mb-4">
+    <div class="card-header"><i class="fas fa-download"></i> Import Jobs</div>
+    <div class="card-body d-flex gap-2">
+      <form method="POST" action="/addons/ve-geology/jobs/hans">
+        <button type="submit" class="btn btn-outline-primary">
+          <i class="fas fa-broadcast-tower"></i> Refresh HANS
+        </button>
+      </form>
+      <form method="POST" action="/addons/ve-geology/jobs/earthquakes">
+        <button type="submit" class="btn btn-outline-primary">
+          <i class="fas fa-wave-square"></i> Refresh Earthquakes
+        </button>
+      </form>
+    </div>
+  </div>
+  <% } %>
+
+</div>
+
+<%- include('footer') %>

@@ -109,6 +109,14 @@ module.exports = {
     const apiRouter = require('./routes/api')(engine, config);
     engine.app.use('/api/ve-geology', apiRouter);
 
+    // ── 5b. Register addon-local views directory ─────────────────────────────
+    const existingViews = engine.app.get('views') ?? [];
+    engine.app.set('views', [...[existingViews].flat(), path.join(__dirname, 'views')]);
+
+    // ── 5c. Mount admin routes ───────────────────────────────────────────────
+    const adminRouter = require('./routes/admin')(engine);
+    engine.app.use('/addons/ve-geology', adminRouter);
+
     // ── 6. Register background refresh jobs ─────────────────────────────────
     const jobManager = engine.getManager('BackgroundJobManager');
     if (jobManager) {
@@ -162,7 +170,7 @@ module.exports = {
         addonName: 've-geology',
         title: 'VE Geology',
         icon: 'fas fa-mountain',
-        adminUrl: '/admin/addons'
+        adminUrl: '/addons/ve-geology'
       });
     }
 
