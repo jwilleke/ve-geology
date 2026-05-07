@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-05-07
+
+### Fixed
+
+- Replaced placeholder `uuid` frontmatter on all 8 seed pages
+  (`ve-geology-about`, `ve-geology-demo`, `ve-geology-earthquakes`,
+  `ve-geology-hans`, `ve-geology-home`, `ve-geology-japan`,
+  `ve-geology-plugins`, `ve-geology-volcanoes`) with real UUID v4 values.
+  The placeholders contained non-hex characters (`v`, `g`, `l`, `o`, `y`)
+  and were rejected by `AddonsManager`'s validator (`/^[0-9a-f]{8}-…$/`),
+  so none of the pages were being seeded into the wiki on startup. See
+  the upstream [addon development guide](https://github.com/jwilleke/ngdpbase/blob/master/docs/platform/addon-development-guide.md#uuid-requirements)
+  for the rules.
+
 ## [1.1.2] - 2026-05-07
 
 ### Fixed
@@ -96,4 +110,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.1.0]: https://github.com/jwilleke/geohazardwatch/compare/v1.0.1...v1.1.0
 [1.1.1]: https://github.com/jwilleke/geohazardwatch/compare/v1.1.0...v1.1.1
 [1.1.2]: https://github.com/jwilleke/geohazardwatch/compare/v1.1.1...v1.1.2
+[1.1.3]: https://github.com/jwilleke/geohazardwatch/compare/v1.1.2...v1.1.3
 [1.0.0]: https://github.com/jwilleke/geohazardwatch/releases/tag/v1.0.0

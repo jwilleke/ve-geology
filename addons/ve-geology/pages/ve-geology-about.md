@@ -1,6 +1,6 @@
 ---
 title: About ve-geology
-uuid: a1b2c3d4-0007-4000-8000-ve0geology007
+uuid: 98f2df76-5d86-472a-9862-9a01267cf4a7
 slug: ve-geology-about
 description: What ve-geology is, where the data comes from, and how to interpret data freshness
 tags: [geology, about, data-sources, volcanoes, earthquakes]

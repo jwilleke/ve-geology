@@ -1,6 +1,6 @@
 ---
 title: Volcanoes
-uuid: a1b2c3d4-0001-4000-8000-ve0geology001
+uuid: 3b3828dd-590f-46fe-9030-d3306ed2ac98
 slug: volcanoes
 author: system
 user-keywords:

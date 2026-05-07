@@ -1,6 +1,6 @@
 ---
 title: Volcanoes and Earthquakes
-uuid: a1b2c3d4-0006-4000-8000-ve0geology006
+uuid: 4bf246b9-ebcc-4774-8175-427c275d407c
 slug: volcanoes-and-earthquakes
 system-category: addon
 description: Home page for the ve-geology volcano and earthquake data platform

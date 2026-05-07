@@ -39,6 +39,29 @@ This document tracks ongoing work and session history for the ve-geology project
 
 ## Session Logs
 
+### 2026-05-07-05
+
+- **Agent:** Claude Opus 4.7
+- **Subject:** v1.1.3 — replace placeholder UUIDs with real v4 UUIDs in seed pages
+- **Work Done:**
+  - Live cluster boot logs (after the `addons-path` array fix in `mj-infra-flux#49`) showed all 8 seed pages skipped: `[AddonsManager] Skipping ve-geology/pages/ve-geology-*.md — missing or invalid uuid in frontmatter`.
+  - Root cause: placeholder UUIDs of the form `a1b2c3d4-000N-4000-8000-ve0geology00N` contain non-hex characters (`v`, `g`, `l`, `o`, `y`) and fail ngdpbase's `AddonsManager` validator regex `/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i`.
+  - Confirmed against ngdpbase's `docs/platform/addon-development-guide.md` (UUID requirements section) which states the rules and recommends `node -e "console.log(require('crypto').randomUUID())"` for generation.
+  - Generated 8 fresh v4 UUIDs and replaced each page's frontmatter `uuid` field. Existing valid UUIDs on `left-menu-content.md` and `footer-content.md` were left as-is.
+  - Bumped to v1.1.3 (patch — bug in seeded content).
+- **Files Modified:**
+  - `addons/ve-geology/pages/ve-geology-about.md`
+  - `addons/ve-geology/pages/ve-geology-demo.md`
+  - `addons/ve-geology/pages/ve-geology-earthquakes.md`
+  - `addons/ve-geology/pages/ve-geology-hans.md`
+  - `addons/ve-geology/pages/ve-geology-home.md`
+  - `addons/ve-geology/pages/ve-geology-japan.md`
+  - `addons/ve-geology/pages/ve-geology-plugins.md`
+  - `addons/ve-geology/pages/ve-geology-volcanoes.md`
+  - `package.json`, `addons/ve-geology/index.js`
+  - `CHANGELOG.md`
+  - `docs/project_log.md` (this file)
+
 ### 2026-05-07-04
 
 - **Agent:** Claude Opus 4.7
