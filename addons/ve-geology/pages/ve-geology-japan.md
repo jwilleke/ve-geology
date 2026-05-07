@@ -1,6 +1,6 @@
 ---
 title: Japan Volcanoes
-uuid: a1b2c3d4-0004-4000-8000-ve0geology004
+uuid: d72befb6-5596-4e7e-b0ca-5c95d7ff32c1
 slug: japan-volcanoes
 author: system
 user-keywords:

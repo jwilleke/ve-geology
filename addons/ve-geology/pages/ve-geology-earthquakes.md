@@ -1,6 +1,6 @@
 ---
 title: Earthquakes
-uuid: a1b2c3d4-0002-4000-8000-ve0geology002
+uuid: ac0ce090-ddae-44cc-b5e8-0d9c5922e5dc
 slug: earthquakes
 author: system
 user-keywords:

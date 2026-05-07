@@ -1,6 +1,6 @@
 ---
 title: Plugin Guide
-uuid: a1b2c3d4-0008-4000-8000-ve0geology008
+uuid: 93595dc0-1ba1-422a-9fd4-c2f6bf056b27
 slug: ve-geology-plugins
 description: End-user guide to all ve-geology wiki plugins — what they render, how to use them, and common combinations
 tags: [geology, plugins, guide, volcanoes, earthquakes]
