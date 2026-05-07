@@ -39,6 +39,28 @@ This document tracks ongoing work and session history for the ve-geology project
 
 ## Session Logs
 
+### 2026-05-07-01
+
+- **Agent:** Claude Opus 4.7
+- **Subject:** Repo rename `ve-geology` → `geohazardwatch`, dockerization, image-publish workflow, Renovate
+- **Key Decision:** Bake addon code into a per-release `ghcr.io/jwilleke/geohazardwatch` image layered on `ghcr.io/jwilleke/ngdpbase`. Data (volcanoes, eruptions, HANS) lives on a persistent volume in the cluster, refreshed by a CronJob — not in the image.
+- **Work Done:**
+  - Renamed GitHub repo `jwilleke/ve-geology` → `jwilleke/geohazardwatch`; old URLs redirect.
+  - Updated local clone's origin URL.
+  - Decided (with operator) to bypass Traefik on the public path for `geohazardwatch.com` (Cloudflare Tunnel → k8s Service direct). See sibling change in `mj-infra-flux`.
+  - Decided to keep the addon in this repo (no separate addon repo). Repo's reason for existence is the addon.
+  - Added `Dockerfile` (FROM `ghcr.io/jwilleke/ngdpbase:v3.10.0`, copies addon + root deps into `/opt/geohazardwatch/`).
+  - Added `.dockerignore` (excludes `node_modules`, `private/`, `addons/ve-geology/data/`, etc.).
+  - Added `.github/workflows/publish-image.yml` (mirrors ngdpbase pattern: tag-triggered, multi-tag semver, ghcr.io push, smoke test, Trivy scan).
+  - Added `renovate.json` — minor/patch auto-merge for both the base image and npm deps; major bumps require review.
+- **Follow-up (separate PR):** Cluster-side manifests in `mj-infra-flux` (`apps/production/geohazardwatch/`) including image automation (Flux `ImageRepository` / `ImagePolicy` / `ImageUpdateAutomation`).
+- **Files Modified:**
+  - `Dockerfile` (new)
+  - `.dockerignore` (new)
+  - `.github/workflows/publish-image.yml` (new)
+  - `renovate.json` (new)
+  - `docs/project_log.md` (this file)
+
 ### 2026-03-31-03
 
 - **Agent:** Claude Sonnet 4.6
