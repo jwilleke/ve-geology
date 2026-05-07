@@ -20,7 +20,11 @@ WORKDIR /opt/geohazardwatch
 
 COPY package.json package-lock.json ./
 
-RUN npm ci --omit=dev
+# --ignore-scripts skips the `prepare` lifecycle (husky install). Husky is a
+# devDependency that isn't present under --omit=dev, and the resulting
+# `husky: not found` makes npm ci exit 127. We don't need git hooks in a
+# runtime container.
+RUN npm ci --omit=dev --ignore-scripts
 
 COPY addons ./addons
 COPY src ./src

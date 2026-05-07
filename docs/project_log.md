@@ -39,6 +39,21 @@ This document tracks ongoing work and session history for the ve-geology project
 
 ## Session Logs
 
+### 2026-05-07-04
+
+- **Agent:** Claude Opus 4.7
+- **Subject:** v1.1.2 — fix `npm ci --omit=dev` failure on husky prepare script
+- **Work Done:**
+  - v1.1.1 publish workflow failed at `RUN npm ci --omit=dev` with `sh: husky: not found, npm error code 127`.
+  - Root cause: package.json `prepare` script calls `husky install`. With `--omit=dev`, husky (a devDependency) isn't installed, so the script fails. The container build doesn't need git hooks anyway.
+  - Added `--ignore-scripts` to the npm ci invocation to skip lifecycle scripts during the runtime build.
+  - Bumped to v1.1.2.
+- **Files Modified:**
+  - `Dockerfile`
+  - `package.json`, `addons/ve-geology/index.js`
+  - `CHANGELOG.md`
+  - `docs/project_log.md` (this file)
+
 ### 2026-05-07-03
 
 - **Agent:** Claude Opus 4.7
