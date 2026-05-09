@@ -24,7 +24,7 @@ jobs:
   tag:
     # Skip the commit this workflow itself produces. version.ts emits the
     # canonical "chore: release v..." message, so this is a tight match.
-    if: ${{ !contains(github.event.head_commit.message, 'chore: release') }}
+    if: "${{ !contains(github.event.head_commit.message, 'chore: release') }}"
     runs-on: ubuntu-latest
     permissions:
       contents: write
