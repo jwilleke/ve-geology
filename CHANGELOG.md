@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-05-09
+
+### Added
+
+- **VolcanoInfobox `placement` parameter** — supports the shared cross-addon
+  placement contract via ngdpbase's `parsePlacementParam` / `placementClass`
+  helpers (`right` / `left` / `block` / `inline`). Combines with the
+  `.plugin-placement-*` CSS classes added in ngdpbase 3.11.3 so plugin
+  placement is consistent platform-wide.
+
 ### Changed
 
 - **BREAKING — Full rebadge from `ve-geology` to `geohazardwatch`** across runtime
@@ -19,8 +29,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Existing ngdpbase deployments must update `app-custom-config.json` for the new
   `ngdpbase.addons.geohazardwatch.*` keys; the old keys are no longer read.
 - Existing wiki instances retain pages at the old slug URLs (`/wiki/ve-geology-about`,
-  etc.) since `seedAddonPages` only seeds on first install — fresh installs get the
-  new slugs.
+  etc.) since `seedAddonPages` only seeds on first install — fresh installs get
+  the new slugs.
+- Bumped `Dockerfile` base image from `ghcr.io/jwilleke/ngdpbase:3.10.3` to
+  `3.11.3`. ngdpbase 3.11.3 ships security patches for `fast-uri`
+  (CVE-2026-6321 path traversal, CVE-2026-6322 host confusion) and `pm2`
+  (CVE-2025-5891 ReDoS plus three internal command-injection fixes). See
+  ngdpbase release notes for the full list.
+- Added `# renovate: datasource=docker depName=ghcr.io/jwilleke/ngdpbase`
+  annotation above the `ARG NGDPBASE_VERSION` line so Renovate's dockerfile
+  manager picks up the dependency. Future ngdpbase tags will be auto-PR'd by
+  Renovate (auto-merged for minor/patch per existing `renovate.json` rules).
+  Last hand-bump on this ARG should be this one. See
+  [ngdpbase#668](https://github.com/jwilleke/ngdpbase/issues/668) for the
+  decision context.
 
 ## [1.1.6] - 2026-05-08
 
@@ -169,4 +191,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.1.4]: https://github.com/jwilleke/geohazardwatch/compare/v1.1.3...v1.1.4
 [1.1.5]: https://github.com/jwilleke/geohazardwatch/compare/v1.1.4...v1.1.5
 [1.1.6]: https://github.com/jwilleke/geohazardwatch/compare/v1.1.5...v1.1.6
+[1.2.0]: https://github.com/jwilleke/geohazardwatch/compare/v1.1.6...v1.2.0
 [1.0.0]: https://github.com/jwilleke/geohazardwatch/releases/tag/v1.0.0
