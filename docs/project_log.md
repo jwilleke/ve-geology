@@ -22,22 +22,98 @@ This document tracks ongoing work and session history for the ve-geology project
 
 - **Phase:** Active development — core addon complete, data sources expanding
 - **Build Status:** No build step (CommonJS JS). Lint passing (`npm run lint`)
-- **Last Updated:** 2026-05-08
-- **Overall Health:** Stable. v1.1.6 released; `[Unreleased]` carries the full rebadge from `ve-geology` to `geohazardwatch` (runtime identity, not just repo name). Lint clean.
+- **Last Updated:** 2026-05-09
+- **Overall Health:** Stable. v1.2.0 released — first release on the post-rename name, includes ngdpbase 3.11.3 base-image bump (CVEs), VolcanoInfobox `placement` param, and the Renovate annotation that wires the upstream-bump auto-PR loop. Lint clean.
 
 ## Next Steps
 
+- **Close auto-deploy loop end-to-end (#31)** — fix dead `ci.yml`, drop missing `npm run test` step, add `auto-tag.yml` so Renovate auto-merges trigger image rebuild + Flux reconcile without intervention. Filed today as a result of finishing the Renovate plumbing in v1.2.0.
+- Implement `system-category: addon` in ngdpbase seedAddonPages (ngdpbase#414)
+- Implement Domain vs Additive addon type distinction (ngdpbase#415) — note: this addon does NOT yet declare `ngdpbase: { type: 'domain' }` in any `package.json`; flagged on ngdpbase#668 as a follow-up
+- Admin panel Add-ons section (ngdpbase#412)
+- New data sources (ve-geology#4 FIRMS, #5 VAACs, #6 MIROVA, #7 VolcanoDiscovery) — require licensing/API key review
 - ~~Add pagination to VolcanoList and EarthquakeList (ve-geology#1)~~ ✓ done
 - ~~Add end-user plugin documentation wiki pages (ve-geology#9)~~ ✓ done
 - ~~Implement periodic data refresh via BackgroundJobManager (ve-geology#8)~~ ✓ done
-- Implement `system-category: addon` in ngdpbase seedAddonPages (ngdpbase#414)
-- Implement Domain vs Additive addon type distinction (ngdpbase#415)
-- Admin panel Add-ons section (ngdpbase#412)
-- New data sources (ve-geology#4 FIRMS, #5 VAACs, #6 MIROVA, #7 VolcanoDiscovery) — require licensing/API key review
 
 ---
 
 ## Session Logs
+
+### 2026-05-09-01
+
+- **Agent:** Claude Opus 4.7
+- **Subject:** v1.2.0 release — ngdpbase 3.11.3 base-image bump, Renovate annotation
+  enabling upstream auto-PRs, and the broader
+  [ngdpbase#668](https://github.com/jwilleke/ngdpbase/issues/668) decision context. Filed
+  [#31](https://github.com/jwilleke/geohazardwatch/issues/31) for the remaining auto-deploy
+  gap.
+- **Current Issue:** PR [#30](https://github.com/jwilleke/geohazardwatch/pull/30) (merged); [#31](https://github.com/jwilleke/geohazardwatch/issues/31) (filed)
+- **Tests:** lint clean (`npm run lint`); CI itself does NOT run today — see #31 Gap 1.
+- **Work Done:**
+  - Collaborated with the operator on [ngdpbase#668](https://github.com/jwilleke/ngdpbase/issues/668)
+    ("Deterministic method for container deployment builds"). Investigated existing pipelines on
+    both sides and concluded: ngdpbase already auto-publishes `ghcr.io/jwilleke/ngdpbase:<v>`
+    on every `v*` tag (its `docker-build.yml` has been working all along); the actual gap was
+    on the consumer side (this repo), where `Dockerfile`'s `ARG NGDPBASE_VERSION` was
+    hand-bumped via release PRs (#25, #27, #28) and had drifted to `3.10.3` despite ngdpbase
+    shipping `3.11.0`/`3.11.1`/`3.11.2`/`3.11.3`. Decision: keep the FROM-the-prebuilt-image
+    pattern; close the drift gap with a Renovate annotation. Documented in
+    [ngdpbase#668 closing comment](https://github.com/jwilleke/ngdpbase/issues/668).
+  - Opened PR [#30](https://github.com/jwilleke/geohazardwatch/pull/30) — added
+    `# renovate: datasource=docker depName=ghcr.io/jwilleke/ngdpbase` annotation above the
+    `ARG NGDPBASE_VERSION` line in `Dockerfile`. The existing `renovate.json` already had the
+    right `packageRules` for `ghcr.io/jwilleke/ngdpbase` (auto-merge minor/patch via
+    `automergeType: branch + platformAutomerge: true`, manual review on major); what was
+    missing was the annotation that lets Renovate's dockerfile manager *find* the dependency
+    when the version lives in an `ARG` rather than a literal `FROM image:tag` line. Without
+    it, Renovate had been silently ignoring this dep (which is why every prior bump was a
+    hand-titled PR). Bumped ARG `3.10.3 → 3.11.3` in the same commit; squash-merged.
+  - Cut **v1.2.0** as a minor release. CHANGELOG `[Unreleased]` (the rebadge from
+    `ve-geology` → `geohazardwatch` that's been sitting since `fe8c4d3`) was promoted into
+    the `[1.2.0]` section, plus today's two additions appended: VolcanoInfobox `placement`
+    param (works with the new platform-wide `.plugin-placement-*` CSS contract from ngdpbase
+    3.11.3) and the Dockerfile bump + Renovate annotation. Tag pushed; GitHub release
+    created with auto-generated notes; `publish-image.yml` ran and built
+    `ghcr.io/jwilleke/geohazardwatch:1.2.0` successfully (10:06 UTC).
+  - **Side finding investigated and filed as
+    [#31](https://github.com/jwilleke/geohazardwatch/issues/31):** when the operator asked
+    "will geohazardwatch auto-build a container after a future Renovate auto-merge?",
+    checking turned up three concrete gaps: (1) `ci.yml` listens on
+    `branches: [master, develop]` but the default branch is `main` — workflow has literally
+    never run; (2) `ci.yml` calls `npm run test` and `npm run test:coverage` which don't
+    exist in `package.json` (only lint scripts do) — would fail at the test step once Gap 1
+    is fixed; (3) `publish-image.yml` triggers only on `v*` tag pushes, so a Renovate
+    auto-merge to `main` wouldn't produce a new image. The proposed fix in #31 closes all
+    three: branch+scripts patch on `ci.yml`, new `auto-tag.yml` workflow that bumps
+    patch+tags on every push to main, and end-to-end verification.
+  - Confirmed the deployment-side automation in
+    [`jwilleke/mj-infra-flux/apps/production/geohazardwatch/image-policy.yaml`](https://github.com/jwilleke/mj-infra-flux/tree/master/apps/production/geohazardwatch)
+    is already complete (`ImageRepository` polls every 10 min; `ImagePolicy` semver
+    `>=1.0.0 <2.0.0`; `ImageUpdateAutomation` commits the bump to `mj-infra-flux/master`).
+    The chain only stalls at #31's gaps; everything before and after is already automated.
+- **Notable observations:**
+  - This addon does not declare `ngdpbase: { type: 'domain' }` in any `package.json` —
+    neither the repo-level one nor an inner `addons/geohazardwatch/package.json` (the latter
+    doesn't exist). So `AddonsManager` has been loading it as the default `additive` type
+    even though architecturally it IS the site identity. The `domainAddonName` enforcement
+    at `AddonsManager.ts:633-643` therefore never trips. Flagged on ngdpbase#668 closing
+    comment; worth a separate small fix in this repo (add an inner
+    `addons/geohazardwatch/package.json` with `"ngdpbase": { "type": "domain" }`) but out
+    of scope for both #30 and #31.
+  - The "GeoHazardWatch" name surfacing in PM2 process listings on the operator's
+    `ngdpbase-veg` deployment is the `ngdpbase.application-name` value set in that
+    instance's custom config — `ecosystem.config.js`'s `readAppName()` priority puts custom
+    config above `.env PROJECT_NAME=ve-geology`. Same single process, two display names
+    depending on which file you read first.
+- **Commits:** `334dfa2` (PR #30 merged squash → `84f6763` on main), `82daf5f` (release v1.2.0)
+- **Files Modified:**
+  - `Dockerfile` (Renovate annotation + ARG bump 3.10.3 → 3.11.3)
+  - `package.json` (1.1.6 → 1.2.0)
+  - `package-lock.json` (1.1.6 → 1.2.0; also picks up the post-rename name correction `ve-geology` → `geohazardwatch` that had been sitting in the lockfile)
+  - `addons/geohazardwatch/index.js` (version constant bumped by `version:bump`)
+  - `CHANGELOG.md` (`[Unreleased]` promoted to `[1.2.0]`, expanded with today's additions)
+  - `docs/project_log.md` (this entry; also updated Current Status and Next Steps)
 
 ### 2026-05-08-03
 
