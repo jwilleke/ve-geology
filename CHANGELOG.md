@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-05-09
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.2.0] - 2026-05-09
 
 ### Added
@@ -192,4 +200,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.1.5]: https://github.com/jwilleke/geohazardwatch/compare/v1.1.4...v1.1.5
 [1.1.6]: https://github.com/jwilleke/geohazardwatch/compare/v1.1.5...v1.1.6
 [1.2.0]: https://github.com/jwilleke/geohazardwatch/compare/v1.1.6...v1.2.0
+[1.2.1]: https://github.com/jwilleke/geohazardwatch/compare/v1.2.0...v1.2.1
 [1.0.0]: https://github.com/jwilleke/geohazardwatch/releases/tag/v1.0.0
