@@ -8,6 +8,7 @@
  * Usage in wiki markup:
  *   [{VolcanoInfobox number='211060'}]
  *   [{VolcanoInfobox number='211060' style='compact'}]
+ *   [{VolcanoInfobox number='211060' placement='block'}]
  *
  * @type {import('../../../src/managers/PluginManager').PluginObject}
  */
@@ -16,7 +17,7 @@ module.exports = {
 
   /**
    * @param {{ engine: import('../../../src/types/WikiEngine').WikiEngine }} context
-   * @param {{ number?: string, style?: string }} params
+   * @param {{ number?: string, style?: string, placement?: string }} params
    * @returns {string}
    */
   execute(context, params) {
@@ -39,11 +40,19 @@ module.exports = {
       return renderCompact(v);
     }
 
-    return renderFull(v);
+    return renderFull(v, parsePlacement(params.placement, 'right'));
   }
 };
 
-function renderFull(v) {
+// Mirrors ngdpbase src/utils/pluginFormatters.ts → parsePlacementParam.
+// Inlined because the addon is plain CommonJS and runs cross-repo.
+function parsePlacement(value, defaultPlacement) {
+  if (!value) return defaultPlacement;
+  const v = String(value).toLowerCase().trim();
+  return ['right', 'left', 'block', 'inline'].includes(v) ? v : defaultPlacement;
+}
+
+function renderFull(v, placement) {
   const photo = v.primaryPhotoLink
     ? `<div class="vib-photo"><img src="${esc(v.primaryPhotoLink)}" alt="${esc(v.volcanoName)}"${v.primaryPhotoCaption ? ` title="${esc(v.primaryPhotoCaption)}"` : ''}></div>`
     : '';
@@ -78,7 +87,7 @@ function renderFull(v) {
     : '';
 
   return `
-<div class="volcano-infobox">
+<div class="volcano-infobox plugin-placement-${placement}">
   ${photo}
   <div class="vib-title">${esc(v.volcanoName)}</div>
   <table class="vib-table">

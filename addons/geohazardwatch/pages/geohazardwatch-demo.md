@@ -18,11 +18,11 @@ This page demonstrates all plugins provided by the __geohazardwatch__ addon.
 
 ## VolcanoInfobox
 
-Full infobox for Kīlauea (GVP 332010):
+Full infobox for Kīlauea (GVP 332010), placed as a centered block:
 
-[{VolcanoInfobox number='332010'}]
+[{VolcanoInfobox number='332010' placement='block'}]
 
-Full infobox for Mount Etna (GVP 211060):
+Full infobox for Mount Etna (GVP 211060), default float-right placement:
 
 [{VolcanoInfobox number='211060'}]
 
