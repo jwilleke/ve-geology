@@ -40,6 +40,58 @@ This document tracks ongoing work and session history for the ve-geology project
 
 ## Session Logs
 
+### 2026-05-09-02
+
+- **Agent:** Claude Opus 4.7
+- **Subject:** Close [#31](https://github.com/jwilleke/geohazardwatch/issues/31) Gaps 1, 2, and 2b — make `ci.yml` actually runnable on `main`
+- **Current Issue:** [#31](https://github.com/jwilleke/geohazardwatch/issues/31) (open; auto-tag + end-to-end verification still pending)
+- **Tests:** `npm run lint` clean; `npx tsc --noEmit` clean (after `@types/node` added)
+- **Work Done:**
+  - Verified all three gaps in #31 against the actual repo state and posted
+    findings as a
+    [comment on #31](https://github.com/jwilleke/geohazardwatch/issues/31#issuecomment-4412321055).
+    Confirmed Gap 1 (default branch is `main`, workflow listened on
+    `master`/`develop`, `gh run list --workflow=ci.yml` returned empty),
+    Gap 2 (no `test` or `test:coverage` script in `package.json`), and Gap 3
+    (`publish-image.yml` only triggers on `v*` tags).
+  - Surfaced two extras the issue had missed: **Gap 2b** — `ci.yml`'s third
+    job called `npm run build`, also nonexistent; and **Gap 4** —
+    `.github/workflows/deploy.yml` is dead and broken (listens on `master`,
+    calls `npm run test` and `npm run build`, ends in a stub `echo`).
+    Recommended deleting `deploy.yml` separately rather than fixing it; not
+    actioned in this session.
+  - Debunked one earlier concern: `version:bump` (i.e. `src/utils/version.ts`)
+    only edits files — it does NOT git-commit or git-tag, so a future
+    `auto-tag.yml` doing those manually is correct, not redundant.
+  - Edited `.github/workflows/ci.yml` — changed
+    `branches: [master, develop]` → `[main]`, removed the `Run tests` and
+    `Check test coverage` steps, removed the `build` job entirely, and
+    renamed the lint job `lint-and-test` → `lint-and-typecheck` so the name
+    matches what runs. Kept lint + `tsc --noEmit` + `npm audit`.
+  - Hit a hidden Gap 5 during local verification: `npx tsc --noEmit` failed
+    with 17 errors (`fs`, `path`, `__dirname`, `process`, `console` all
+    unresolvable) because `@types/node` was not in `devDependencies`. The
+    original CI never actually ran (Gap 1), so this would have surfaced
+    immediately once the branch listener was fixed. Added
+    `@types/node@^25.6.2` as devDep — `tsc` now silent, no other code
+    touched.
+  - Drive-by: `.claude/commands/check-todos.md` got one extra line pointing
+    at the GitHub Actions URL (relevant now that CI will actually start
+    running).
+  - **Did NOT cut a release.** This change is CI-only + a devDep — no runtime behavior changes, so `/semver` was skipped.
+- **Open work for #31 (next session):**
+  - Decide whether `auto-tag.yml` should path-filter (`addons/**`, `Dockerfile`, `package.json`, `package-lock.json`) or accept rebuild-on-every-commit.
+  - Verify `main` branch protection won't block a bot-pushed tag commit before wiring `auto-tag.yml`.
+  - Delete `deploy.yml` (Gap 4) — separate small PR.
+  - End-to-end verification: a no-op commit on `main` should cascade auto-tag → `publish-image.yml` → Flux ImagePolicy → cluster reconcile.
+- **Commits:** `b5ced42` (this session's CI fix); session log commit follows.
+- **Files Modified:**
+  - `.github/workflows/ci.yml`
+  - `package.json` (+ `@types/node` devDep)
+  - `package-lock.json`
+  - `.claude/commands/check-todos.md`
+  - `docs/project_log.md` (this entry)
+
 ### 2026-05-09-01
 
 - **Agent:** Claude Opus 4.7
