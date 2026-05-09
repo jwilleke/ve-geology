@@ -40,6 +40,139 @@ This document tracks ongoing work and session history for the ve-geology project
 
 ## Session Logs
 
+### 2026-05-09-03
+
+- **Agent:** Claude Opus 4.7
+- **Subject:** Close end-to-end deploy loop —
+  [#31](https://github.com/jwilleke/geohazardwatch/issues/31) Fixes 2 and 3
+  (`auto-tag.yml` + cascade validation), Node 20+ matrix requirement, full GitHub
+  Actions upgrade to Node-24-compatible versions, resolves
+  [#34](https://github.com/jwilleke/geohazardwatch/issues/34); files
+  [#33](https://github.com/jwilleke/geohazardwatch/issues/33) (delete dead
+  `deploy.yml`).
+- **Current Issue:** [#31](https://github.com/jwilleke/geohazardwatch/issues/31)
+  (open, fully resolved pending Flux-side observation);
+  [#33](https://github.com/jwilleke/geohazardwatch/issues/33) (filed, open);
+  [#34](https://github.com/jwilleke/geohazardwatch/issues/34) (resolved by
+  `847cca4`, open pending close)
+- **Tests:** CI ran for the first time ever after Gap 1 fix; first run failed on
+  Node 18 (string-width's ES2024 `/v` regex flag); after dropping to Node 20+
+  matrix, all subsequent runs green. End-to-end cascade exercised twice via
+  `auto-tag.yml workflow_dispatch` — once after Commit A
+  (checkout/setup-node v4→v6) producing `v1.2.1`, once after Commit B (Docker
+  stack + codeql v3→v4) producing `v1.2.2`. Both image builds passed smoke test
+  (start container, wait healthy, HTTP probe, Trivy scan).
+- **Work Done:**
+  - First push to `main` after Gap 1 fix (commit `b5ced42` from session
+    2026-05-09-02) revealed a hidden Gap 5: `npx tsc --noEmit` failed on Node
+    18 with 17 `Cannot find name fs/path/process/console` errors because
+    `@types/node` was missing; fixed in same commit. Then the Node 18 leg of
+    the matrix failed with `SyntaxError: Invalid regular expression flags` in
+    `node_modules/string-width/index.js` — the `/v` regex flag is ES2024-only
+    and requires Node 20+. Decision: drop Node 18 from the matrix
+    (`engines.node: ">=20.0.0"`, `engines.npm: ">=10.0.0"`) — operator
+    confirmed ngdpbase requires the same minimum. Commit `33c9922`.
+  - Verified branch protection on `main` is fully open
+    (`gh api repos/.../branches/main/protection` → 404; rulesets `[]`) —
+    bot push for `auto-tag.yml` will not be blocked.
+  - Walked the operator through fine-grained PAT setup and validated the
+    resulting `RELEASE_PAT` end-to-end via a one-off
+    `_test-release-pat.yml` workflow that did `gh api user` (returned
+    `jwilleke`) plus push-and-delete of a throwaway non-`v*` tag (proves
+    `contents: write` and that pushes from this token will trigger downstream
+    workflows — the whole reason for using a PAT instead of `GITHUB_TOKEN`,
+    which silently suppresses workflow chaining). Validation workflow added
+    in `e9884ef` and removed in `89c6f2e`.
+  - Drafted `auto-tag.yml`. Triggers: push to `main` with path filter
+    (`addons/**`, `Dockerfile`, `package.json`, `package-lock.json`) plus
+    `workflow_dispatch`. Concurrency group `auto-tag` with
+    `cancel-in-progress: false` to serialize back-to-back pushes. Loop guard
+    via `if: ${{ !contains(github.event.head_commit.message, 'chore: release') }}` —
+    matches the canonical message `version.ts` documents and the workflow
+    itself emits. Checkout uses `RELEASE_PAT` so the eventual
+    `git push --follow-tags` is signed by the user identity. First push of
+    the workflow file (`f94b5ee`) failed YAML validation: the unquoted `if:`
+    expression had a colon-space inside `'chore: release'` parsed as a YAML
+    mapping
+    separator at the outer plain-scalar level. GitHub showed the run as
+    failed-with-no-jobs and the workflow's `name` field as the file path,
+    which is the diagnostic signature of a YAML parse failure. Fixed in
+    `fe453b9` by wrapping the whole expression in double quotes.
+    `node -e "yaml.load(...)"` catches this; `gh run view` does not.
+  - Cascade verification round 1: triggered
+    `auto-tag.yml workflow_dispatch` (run 25599929931, 19s green) →
+    bumped `1.2.0` → `1.2.1` → committed `chore: release v1.2.1`
+    (`e6e2bc4`) → tagged `v1.2.1` and pushed → `publish-image.yml` fired
+    automatically on the tag push (run 25599934870) → built and published
+    `ghcr.io/jwilleke/geohazardwatch:1.2.1`, smoke test passed, Trivy
+    scan green. Loop guard verified empirically: the
+    `chore: release v1.2.1` commit also triggered
+    `auto-tag.yml` (run 25599934919) which immediately skipped via the `if:`
+    guard (1s, status `skipped`). PAT chaining works.
+  - Addressed deprecation warnings observed across all workflow runs:
+    "Node.js 20 actions are deprecated" (forced to Node 24 by 2026-06-02;
+    Node 20 removed from runners 2026-09-16) and "CodeQL Action v3 will be
+    deprecated in December 2026". Audited all action versions in use, then
+    split the bumps into two commits for bisectability.
+  - **Commit A** (`6ae95ba`): bumped `actions/checkout@v4 → v6` and
+    `actions/setup-node@v4 → v6` across `ci.yml`, `auto-tag.yml`, and
+    `publish-image.yml`. (Did NOT touch `deploy.yml` — slated for deletion
+    in #33.) CI run 25600041521 green; Node 20 deprecation annotation gone
+    from logs.
+  - **Commit B** (`847cca4`): bumped Docker stack and codeql in
+    `publish-image.yml` — `setup-buildx@v3 → v4`, `metadata@v5 → v6`,
+    `login@v3 → v4`, `build-push@v5 → v7`, `codeql-action/upload-sarif@v3
+    → v4`. Highest risk was `build-push` v6 changing default provenance
+    behavior with `push: true + load: true` together; validated by
+    triggering `auto-tag.yml workflow_dispatch` again (cuts `v1.2.2`,
+    `3abc946`) and watching the cascade — `publish-image.yml` ran 2m11s
+    green with all smoke-test steps and Trivy scan passing. Node 20 +
+    CodeQL v3 deprecation warnings both gone after this commit. This
+    resolves [#34](https://github.com/jwilleke/geohazardwatch/issues/34).
+    Left `aquasecurity/trivy-action@master` unpinned — orthogonal hygiene
+    concern, separate small follow-up if desired (not filed).
+  - Filed [#33](https://github.com/jwilleke/geohazardwatch/issues/33) —
+    delete dead `deploy.yml` (Gap 4 surfaced during #31 verification: dead
+    branch listener `master`, calls nonexistent `npm run test`/`build`,
+    ends in stub `echo`). Recommended low priority — workflow is dead, not
+    actively harmful.
+- **Open work (next sessions):**
+  - Wait for Flux's 10-minute `ImageRepository` poll to pick up `v1.2.2`
+    in `mj-infra-flux/apps/production/geohazardwatch`; verify
+    `ImageUpdateAutomation` commits the bump to `mj-infra-flux/master`;
+    verify cluster reconcile rolls the geohazardwatch pod onto `1.2.2`.
+    Then close #31.
+  - #33 — delete `deploy.yml` (one-line PR).
+  - #34 — close (resolved by `847cca4`).
+  - Pin `aquasecurity/trivy-action` from `@master` to a tag (not filed,
+    optional hygiene).
+- **Commits (this session):**
+  `33c9922`, `e9884ef`, `89c6f2e`, `f94b5ee`, `fe453b9`, `e6e2bc4` (bot —
+  v1.2.1 release via auto-tag self-test), `6ae95ba`, `847cca4`, `3abc946`
+  (bot — v1.2.2 release via auto-tag self-test of Commit B), plus this
+  log entry.
+- **Files Modified:**
+  - `package.json` (engines.node `>=18.0.0` → `>=20.0.0`, engines.npm
+    `>=9.0.0` → `>=10.0.0`; version `1.2.0` → `1.2.1` → `1.2.2` via bot)
+  - `package-lock.json` (corresponding lockfile updates)
+  - `.github/workflows/ci.yml` (matrix `[18.x, 20.x]` → `[20.x]`,
+    `actions/checkout@v4 → v6`, `actions/setup-node@v4 → v6`)
+  - `.github/workflows/auto-tag.yml` (NEW — 56 lines; later YAML quote
+    fix; later checkout/setup-node bumps)
+  - `.github/workflows/publish-image.yml` (full action stack bumps;
+    `actions/checkout@v4 → v6`, Docker stack v3/v5 → v4/v6/v7, codeql
+    `v3 → v4`)
+  - `.github/workflows/README.md` (dropped stale Node 18.x references in
+    docs to match new matrix)
+  - `.github/workflows/_test-release-pat.yml` (NEW then DELETED — PAT
+    validation, see commits `e9884ef` + `89c6f2e`)
+  - `addons/geohazardwatch/index.js` (version constant bumped twice via
+    bot — `1.2.0` → `1.2.1` → `1.2.2`)
+  - `CHANGELOG.md` (two new sections from `version:bump` —
+    `[1.2.1]`, `[1.2.2]`; bodies left as the empty Added/Changed/Fixed
+    scaffold for retroactive fill)
+  - `docs/project_log.md` (this entry)
+
 ### 2026-05-09-02
 
 - **Agent:** Claude Opus 4.7
