@@ -1,0 +1,139 @@
+# Detects renames of the addon's `name:` field and warns operators to
+# audit downstream config repos. See CONTRIBUTING.md "Renaming the addon
+# ID" and jwilleke/geohazardwatch#35 for context. Companion runtime check
+# lives in ngdpbase v3.13.1+ as `assertConfiguredAddonsExist` (#672).
+name: Addon rename detector
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  detect:
+    name: Detect addon-id rename
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # full history; we diff against the previous tag
+
+      - name: Find previous tag
+        id: prev
+        run: |
+          # Walk back from HEAD's parent so we don't compare the current
+          # release commit (if any) against itself.
+          prev=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "tag=${prev}" >> "$GITHUB_OUTPUT"
+          if [ -z "$prev" ]; then
+            echo "No previous tag found — first commit, nothing to diff."
+          else
+            echo "Comparing addons/*/index.js against ${prev}"
+          fi
+
+      - name: Diff addon name field
+        id: diff
+        if: steps.prev.outputs.tag != ''
+        run: |
+          set -euo pipefail
+          # Pull the `name:` line from each addon's index.js, both at the
+          # previous tag and at HEAD. Compare.
+          old_name=""
+          new_name=""
+          for f in addons/*/index.js; do
+            if [ -f "$f" ]; then
+              # Match a line like:   name: 'foo',   or   name: "foo",
+              new_name=$(grep -E "^[[:space:]]*name:[[:space:]]*['\"][^'\"]+['\"]" "$f" | head -1 | sed -E "s/.*name:[[:space:]]*['\"]([^'\"]+)['\"].*/\1/")
+              old_blob=$(git show "${{ steps.prev.outputs.tag }}:$f" 2>/dev/null || echo "")
+              if [ -n "$old_blob" ]; then
+                old_name=$(echo "$old_blob" | grep -E "^[[:space:]]*name:[[:space:]]*['\"][^'\"]+['\"]" | head -1 | sed -E "s/.*name:[[:space:]]*['\"]([^'\"]+)['\"].*/\1/")
+              fi
+              break  # only one addon directory expected; stop at first match
+            fi
+          done
+
+          echo "old_name=${old_name}" >> "$GITHUB_OUTPUT"
+          echo "new_name=${new_name}" >> "$GITHUB_OUTPUT"
+
+          if [ -z "$old_name" ] || [ -z "$new_name" ] || [ "$old_name" = "$new_name" ]; then
+            echo "renamed=false" >> "$GITHUB_OUTPUT"
+            echo "No addon-id rename detected (old='${old_name}', new='${new_name}')."
+          else
+            echo "renamed=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Addon id renamed: '${old_name}' → '${new_name}'. Downstream config repos must be audited; see CONTRIBUTING.md."
+          fi
+
+      - name: Search downstream repos for old name
+        id: search
+        if: steps.diff.outputs.renamed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          old="${{ steps.diff.outputs.old_name }}"
+          # GitHub code search across the user's repos. The default
+          # GITHUB_TOKEN may have limited access to private repos; if
+          # mj-infra-flux is private, this step needs a PAT instead.
+          # We log a warning rather than failing if search returns nothing
+          # — a clean search may be a real "no downstream uses the old
+          # name" or a permissions issue.
+          results=$(gh search code "ngdpbase.addons.${old}" --owner jwilleke --json repository,path --jq '.[] | "\(.repository.nameWithOwner):\(.path)"' || echo "")
+          count=$(echo -n "$results" | grep -c "^" || true)
+          echo "count=${count}" >> "$GITHUB_OUTPUT"
+          {
+            echo "matches<<EOF"
+            echo "${results:-(no matches found, or token lacks access)}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Fail with checklist link
+        if: steps.diff.outputs.renamed == 'true' && steps.search.outputs.count != '0'
+        run: |
+          cat <<'MSG' >&2
+          ====================================================================
+          ADDON ID RENAMED — DOWNSTREAM CONFIGS MUST BE UPDATED
+
+          Old id: ${{ steps.diff.outputs.old_name }}
+          New id: ${{ steps.diff.outputs.new_name }}
+
+          The following downstream files reference the old id and need
+          updating before this image rolls out to production:
+
+          ${{ steps.search.outputs.matches }}
+
+          Action required:
+          1. Open companion PR(s) in the affected repo(s) updating
+             `ngdpbase.addons.${{ steps.diff.outputs.old_name }}.*` keys
+             to use `ngdpbase.addons.${{ steps.diff.outputs.new_name }}.*`.
+          2. Coordinate merge order: downstream config PR merges first,
+             so Flux reconciles the new id before the addon image deploys.
+          3. See CONTRIBUTING.md "Renaming the addon ID" for the full
+             checklist (jwilleke/geohazardwatch#35).
+          ====================================================================
+          MSG
+          exit 1
+
+      - name: Comment on PR with checklist
+        if: github.event_name == 'pull_request' && steps.diff.outputs.renamed == 'true' && steps.search.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "## ⚠️ Addon ID rename detected
+
+          This PR renames the addon id from \`${{ steps.diff.outputs.old_name }}\` → \`${{ steps.diff.outputs.new_name }}\`.
+
+          The following downstream files still reference the **old** id and need updating before this image deploys:
+
+          \`\`\`
+          ${{ steps.search.outputs.matches }}
+          \`\`\`
+
+          See [\`CONTRIBUTING.md\` — Renaming the addon id](../blob/main/CONTRIBUTING.md#renaming-the-addon-id) for the full checklist.
+
+          Until those downstream configs are updated, ngdpbase v3.13.1+ will refuse to start with a clear \`assertConfiguredAddonsExist\` error pointing at the stale key. Earlier versions will silently disable the addon at runtime — see [\`jwilleke/ngdpbase#671\`](https://github.com/jwilleke/ngdpbase/issues/671) for the post-mortem of that exact failure mode.
+          "
