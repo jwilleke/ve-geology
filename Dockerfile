@@ -9,7 +9,7 @@
 # without rebuilding.
 
 # renovate: datasource=docker depName=ghcr.io/jwilleke/ngdpbase
-ARG NGDPBASE_VERSION=3.11.3
+ARG NGDPBASE_VERSION=3.13.1
 FROM ghcr.io/jwilleke/ngdpbase:${NGDPBASE_VERSION}
 
 LABEL org.opencontainers.image.title="geohazardwatch"

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.4] - 2026-05-10
+
+### Changed
+
+- **Bumped `NGDPBASE_VERSION` 3.11.3 → 3.13.1** in `Dockerfile`. Pulls in two cluster-side bug fixes for the `/contact` form on geohazardwatch.com that were already shipped in upstream ngdpbase but not yet deployed:
+  - **#670 Phase A** (ngdpbase v3.11.4) — footer `/contact` link rendering on every page when `contactAvailable` resolves true. Was missing on the live site (jwilleke/ngdpbase#678) because this image was still on v3.11.3.
+  - **#670 Phase C** (ngdpbase v3.12.0) — JSONL audit log at `{instanceDataFolder}/contact-submissions.log` for every legitimate submission. Was missing on the live site (jwilleke/ngdpbase#679) for the same reason.
+- Both issues filed against `jwilleke/ngdpbase` per the cross-repo coordination convention; closed once the new image deploys and verification confirms the chrome + audit log are live.
+
 ## [1.2.3] - 2026-05-09
 
 ### Added
