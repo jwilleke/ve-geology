@@ -46,6 +46,12 @@ jobs:
         # only specific patches like v46.1.14 exist. Pin to a specific patch and
         # let Renovate itself bump this line in future runs.
         uses: renovatebot/github-action@v46.1.14
+        env:
+          # Tell Renovate to discover the repo to scan from the token's scope.
+          # The RENOVATE_TOKEN PAT is scoped to only jwilleke/geohazardwatch,
+          # so autodiscover finds exactly that one repo. Without this, Renovate
+          # starts and immediately warns "No repositories found" and exits.
+          RENOVATE_AUTODISCOVER: "true"
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
           configurationFile: renovate.json
