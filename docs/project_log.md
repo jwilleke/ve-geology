@@ -38,6 +38,24 @@ This document tracks ongoing work and session history for the geohazardwatch pro
 
 ## Session Logs
 
+### 2026-05-11-03
+
+- **Agent:** Claude Opus 4.7
+- **Subject:** Housekeeping: commit leftover working-tree drift.
+- **Current Issue:** none
+- **Tests:** Pre-commit lint passed on both commits.
+- **Work Done:**
+  - Refined the `/check-todos` slash command: added "ALWAYS show GH
+    (Number) with links" so issue numbers always render as links;
+    fixed a typo in the actions URL example.
+  - Synced `package-lock.json` from v1.2.0 / node>=18 / npm>=9 to v1.2.6 /
+    node>=20 / npm>=10 — matches the engines bump that already landed in
+    `package.json` via commit `33c9922`.
+- **Commits:** `fceed00`, `86fe66e`
+- **Files Modified:**
+  - `.claude/commands/check-todos.md`
+  - `package-lock.json`
+
 ### 2026-05-11-02
 
 - **Agent:** Claude Opus 4.7
