@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Seeded `request-access` page now uses `system-category: system` and links to `/contact`** via JSPWiki link-with-target syntax. Affects fresh deployments only; existing instances retain whatever copy is on their persistent volume.
 - Bump filed manually pending [jwilleke/ngdpbase#680](https://github.com/jwilleke/ngdpbase/issues/680) (auto-rebuild on upstream Release events). Once #680 lands, satellite rebuild will fire automatically on any future ngdpbase minor/major or any `/release` invocation.
 
+## [1.2.6] - 2026-05-11
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.2.5] - 2026-05-10
 
 ### Added
@@ -244,4 +252,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.2]: https://github.com/jwilleke/geohazardwatch/compare/v1.2.1...v1.2.2
 [1.2.3]: https://github.com/jwilleke/geohazardwatch/compare/v1.2.2...v1.2.3
 [1.2.5]: https://github.com/jwilleke/geohazardwatch/compare/v1.2.4...v1.2.5
+[1.2.6]: https://github.com/jwilleke/geohazardwatch/compare/v1.2.5...v1.2.6
 [1.0.0]: https://github.com/jwilleke/geohazardwatch/releases/tag/v1.0.0
