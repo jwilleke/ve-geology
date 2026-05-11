@@ -1,0 +1,48 @@
+name: Renovate
+
+# Self-hosted Renovate. Runs as a scheduled GitHub Action against the existing
+# renovate.json at the repo root. No dependency on Mend's hosted service.
+#
+# What it does:
+#   - Polls dependency sources (GHCR for the ngdpbase base image, npm for
+#     deps) every 6 hours.
+#   - Opens PRs for available updates.
+#   - Auto-merges minor + patch updates per the rules in renovate.json
+#     (ngdpbase base image and npm deps, both with platformAutomerge: true).
+#   - Auto-merged Dockerfile bumps trigger auto-tag.yml → publish-image.yml,
+#     which is the whole point — keeps this satellite current with upstream
+#     ngdpbase patches and minors without operator action.
+#
+# Required secret:
+#   RENOVATE_TOKEN — fine-grained PAT scoped to this repo with:
+#     - Contents: read & write
+#     - Pull requests: read & write
+#     - Workflows: read & write
+#   The Workflows scope is required so Renovate's auto-merged commits trigger
+#   downstream workflows (auto-tag.yml etc.). The default GITHUB_TOKEN cannot
+#   trigger other workflows, which would break the rebuild cascade.
+#
+#   Operator may reuse RELEASE_PAT for this secret if its scopes match.
+#
+# Trigger context: jwilleke/ngdpbase#680.
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # every 6 hours
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@v40
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
+          configurationFile: renovate.json

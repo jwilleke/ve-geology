@@ -6,9 +6,6 @@
     ":dependencyDashboard"
   ],
   "timezone": "America/New_York",
-  "schedule": [
-    "before 6am on monday"
-  ],
   "labels": ["dependencies"],
   "rangeStrategy": "bump",
   "packageRules": [

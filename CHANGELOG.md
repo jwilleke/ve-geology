@@ -7,12 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Self-hosted Renovate** via `.github/workflows/renovate.yml`. Closes the
+  bridge from [jwilleke/ngdpbase#680](https://github.com/jwilleke/ngdpbase/issues/680).
+- Runs on a 6-hour cron + `workflow_dispatch`. Uses the existing
+  `renovate.json` (`auto-merge` rule for minor + patch updates of
+  `ghcr.io/jwilleke/ngdpbase`).
+- Requires a `RENOVATE_TOKEN` repo secret — fine-grained PAT scoped to
+  Contents, Pull requests, and **Workflows**. The Workflows scope is
+  required so auto-merged Dockerfile bumps trigger `auto-tag.yml` and the
+  publish-image cascade; the default `GITHUB_TOKEN` cannot cross-trigger
+  workflows. Operator may reuse `RELEASE_PAT` if scopes match.
+- Replaces the Mend-hosted Renovate App path, which 404'd on
+  org-onboarding.
+
 ### Changed
 
-- **Bumped `NGDPBASE_VERSION` 3.13.1 → 3.13.2** in `Dockerfile`. Pulls in two upstream patch fixes shipped in ngdpbase v3.13.2:
-  - **`POST /contact` returns HTTP 200 (not 400) on `EmailManager.sendTo` failure** ([jwilleke/ngdpbase#677](https://github.com/jwilleke/ngdpbase/issues/677)). Aligns the response with the documented state matrix; mail-send failure is server-side, not a client validation error.
-  - **Seeded `request-access` page now uses `system-category: system` and links to `/contact`** via JSPWiki link-with-target syntax. Affects fresh deployments only; existing instances retain whatever copy is on their persistent volume.
-- Bump filed manually pending [jwilleke/ngdpbase#680](https://github.com/jwilleke/ngdpbase/issues/680) (auto-rebuild on upstream Release events). Once #680 lands, satellite rebuild will fire automatically on any future ngdpbase minor/major or any `/release` invocation.
+- **Bumped `NGDPBASE_VERSION` 3.13.1 → 3.13.2** in `Dockerfile`. Pulls in
+  two upstream patch fixes shipped in ngdpbase v3.13.2:
+  - **`POST /contact` returns HTTP 200 (not 400) on `EmailManager.sendTo`
+    failure** ([jwilleke/ngdpbase#677](https://github.com/jwilleke/ngdpbase/issues/677)).
+    Aligns the response with the documented state matrix; mail-send
+    failure is server-side, not a client validation error.
+  - **Seeded `request-access` page now uses `system-category: system` and
+    links to `/contact`** via JSPWiki link-with-target syntax. Affects
+    fresh deployments only; existing instances retain whatever copy is on
+    their persistent volume.
+- Bump filed manually pending the auto-rebuild loop above; once the new
+  Renovate workflow runs, future ngdpbase updates land here without
+  operator action.
+- Removed the global `"schedule": ["before 6am on monday"]` from
+  `renovate.json` so the 6-hour cron in the new Renovate workflow has
+  windows to act on. Per-rule schedules (e.g. `lockFileMaintenance.schedule`)
+  remain — only the global gate was lifted.
 
 ## [1.2.6] - 2026-05-11
 
