@@ -1,6 +1,6 @@
 ---
 project_state: "active"
-last_updated: "2026-03-30"
+last_updated: "2026-05-11"
 agent_priority_level: "medium"
 blockers: []
 requires_human_review: ["major architectural changes", "security policy modifications", "deployment to production"]
@@ -133,10 +133,8 @@ Key open issues:
 | #5 | geohazardwatch | VAAC ash advisories |
 | #6 | geohazardwatch | MIROVA/MODVOLC satellite monitoring |
 | #7 | geohazardwatch | VolcanoDiscovery RSS (licensing TBD) |
-| #12 | geohazardwatch | [BUG] VolcanoInfobox placement on page |
 | #13 | geohazardwatch | Tsunami and landslide feeds *(good first issue)* |
 | #14 | geohazardwatch | [EPIC] Cloudflare Tunnel Setup for geohazardwatch.com |
-| #32 | geohazardwatch | [BUG] Turn off registration |
 | #33 | geohazardwatch | Delete dead `deploy.yml` workflow (Gap 4 from #31) |
 | #64 | mj-infra-flux | [BUG] ImageRepository missing GHCR `secretRef` — blocks geohazardwatch auto-deploy |
 
