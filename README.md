@@ -14,7 +14,35 @@ Powered by [Global Volcanism Program (GVP)](https://volcano.si.edu/) volcano dat
 - Seeds demo wiki pages into your ngdpbase instance automatically on first load
 - Exposes a REST API at `/api/geohazardwatch/*`
 
-## Quick start
+## Quick try (30 seconds)
+
+Want to see what GeoHazardWatch looks like running locally? One command:
+
+```sh
+docker run --rm -p 3000:3000 ghcr.io/jwilleke/geohazardwatch:latest
+```
+
+Open `http://localhost:3000` — you'll see the wiki running with the volcano and earthquake addons active. Ctrl-C to stop. No data persists; for a real instance see *Deploy your own* below.
+
+## Deploy your own
+
+For a real GeoHazardWatch instance with persistent data, two commands:
+
+```sh
+git clone https://github.com/jwilleke/geohazardwatch.git
+cd geohazardwatch
+docker compose up -d
+```
+
+The bundled `docker-compose.yml` pulls the published image, mounts a named
+volume for persistent storage, and exposes the wiki on `http://localhost:3000`.
+Override the host port with `HOST_PORT=8080 docker compose up -d`. For HTTPS,
+put a reverse proxy in front (Caddy, nginx, Cloudflare Tunnel) or pin to a
+specific image tag.
+
+Need to run without Docker? See [SETUP.md](./SETUP.md) for the direct install path (clone ngdpbase + this addon side-by-side, no containers).
+
+## Develop the addon
 
 ```sh
 git clone https://github.com/jwilleke/geohazardwatch.git

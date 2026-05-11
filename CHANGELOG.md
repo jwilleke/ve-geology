@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`docker-compose.yml`** at the repo root for one-command deploy
+  (`git clone && docker compose up -d`). Pulls the published GHCR image,
+  uses a named volume `ghw-data` for persistent storage, exposes the wiki
+  on `http://localhost:3000` (override with `HOST_PORT`). Addresses
+  [jwilleke/ngdpbase#682](https://github.com/jwilleke/ngdpbase/issues/682)
+  Lever 1.
+- **README "Quick try" + "Deploy your own" sections** at the top. Quick
+  try is a `docker run` one-liner for a 30-second peek (no persistence);
+  Deploy your own uses the new compose file. The existing dev-oriented
+  install instructions are now under "Develop the addon." Addresses #682
+  Lever 2.
 - **Self-hosted Renovate** via `.github/workflows/renovate.yml`. Closes the
   bridge from [jwilleke/ngdpbase#680](https://github.com/jwilleke/ngdpbase/issues/680).
 - Runs on a 6-hour cron + `workflow_dispatch`. Uses the existing
