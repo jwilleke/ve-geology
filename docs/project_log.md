@@ -40,6 +40,31 @@ This document tracks ongoing work and session history for the ve-geology project
 
 ## Session Logs
 
+### 2026-05-11-01
+
+- **Agent:** Claude Opus 4.7
+- **Subject:** Triaged open issues; closed two resolved bugs and tidied AGENTS.md.
+- **Current Issue:** #12 (closed), #32 (already closed, comment added)
+- **Tests:** Pre-commit lint passed (`npm run lint:code && npm run lint:md`). No
+  code changes in this session.
+- **Work Done:**
+  - Ran `/check-todos`. Flagged that `docs/TODO.md` doesn't exist (only
+    `docs/project_log.md`) and that the Renovate workflow run 25672119378 is
+    failing on an invalid action pin (`renovatebot/github-action@v40`).
+  - Closed `jwilleke/geohazardwatch#12` (VolcanoInfobox placement) as
+    completed — resolved in v1.2.0 via the new `placement` param, with
+    supporting helpers in
+    `https://github.com/jwilleke/ngdpbase/blob/master/src/utils/pluginFormatters.ts`.
+  - Posted a resolution comment on `jwilleke/geohazardwatch#32` (Turn off
+    registration), which was already closed 2026-05-09. Linked
+    `jwilleke/ngdpbase#669` (`registration NOT disabled!`, closed) and
+    `https://github.com/jwilleke/ngdpbase/blob/master/docs/admin/Self-Registration.md`.
+  - Removed #12 and #32 from the **Key open issues** table in `AGENTS.md`
+    and bumped `last_updated` to 2026-05-11.
+- **Commits:** `229fe11`
+- **Files Modified:**
+  - `AGENTS.md` (drop #12 + #32 from open table, bump `last_updated`)
+
 ### 2026-05-10-01
 
 - **Agent:** Claude Opus 4.7
