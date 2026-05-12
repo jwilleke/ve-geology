@@ -4,6 +4,7 @@
     "config:recommended",
     ":semanticCommits"
   ],
+  "dependencyDashboard": false,
   "timezone": "America/New_York",
   "labels": ["dependencies"],
   "rangeStrategy": "bump",
