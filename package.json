@@ -28,8 +28,8 @@
   },
   "devDependencies": {
     "@types/node": "^25.7.0",
-    "@typescript-eslint/eslint-plugin": "^8.57.2",
-    "@typescript-eslint/parser": "^8.57.2",
+    "@typescript-eslint/eslint-plugin": "^8.59.3",
+    "@typescript-eslint/parser": "^8.59.3",
     "eslint": "^8.57.1",
     "husky": "^8.0.3",
     "markdownlint-cli": "^0.48.0",
